@@ -396,3 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/ptype-lang/ptype-lang
+/ptype-lang
