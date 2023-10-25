@@ -12,7 +12,7 @@ int main(int32_t argc, char** argv)
 			}
 			else
 			{
-				// run file
+				pt_cmd_run_file(argv[1]);
 			}
 			break;
 		}
