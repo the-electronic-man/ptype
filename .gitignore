@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 /ptype-lang/ptype-lang
 /ptype-lang
+*.bak
