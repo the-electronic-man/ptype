@@ -18,6 +18,7 @@ void _pt_error(const char* format, ...)
 	vprintf(format, args);
 	va_end(args);
 	printf("\n");
+	exit(1);
 }
 
 void _pt_log(const char* format, ...)
