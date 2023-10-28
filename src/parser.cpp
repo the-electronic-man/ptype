@@ -184,7 +184,7 @@ ASTExpression* Parser::parse_expr()
 	return node;
 }
 
-ASTNode* Parser::parse_decl_var()
+ASTDeclaration* Parser::parse_decl_var()
 {
 	(void)expect(TokenKind::KW_VAR);
 	Token var_name = expect(TokenKind::IDENTIFIER, "expected variable name");
