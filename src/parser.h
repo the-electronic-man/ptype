@@ -16,6 +16,8 @@ struct Parser
 
 	ASTNode* parse(Token* token_list, size_t token_count);
 
+	ASTType* parse_type();
+
 	ASTExpression* parse_expr_primary();
 	ASTExpression* parse_expr_unary();
 	ASTExpression* parse_expr_factor();

@@ -210,6 +210,6 @@ ASTDeclaration* Parser::parse_decl_var()
 		}
 	}
 
-	ASTNode* node = new ASTDeclarationVariable(var_name, nullptr, expr);
+	ASTDeclaration* node = new ASTDeclarationVariable(var_name, nullptr, expr);
 	return node;
 }

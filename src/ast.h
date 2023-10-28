@@ -1,9 +1,16 @@
 #pragma once
 #include "token.h"
-
+#include "built_in_types.h"
 
 enum class NodeKind
 {
+	TYPE_PRIMITIVE,
+	TYPE_REFERENCE,
+	TYPE_ARRAY,
+
+	NAME_SIMPLE,
+	NAME_QUALIFIED,
+
 	EXPR_GROUP,
 	EXPR_LITERAL,
 	EXPR_UNARY,
@@ -22,6 +29,8 @@ struct Visitor;
 struct ASTNode
 {
 	NodeKind kind;
+
+	ASTNode(NodeKind kind);
 	virtual ~ASTNode() {}
 	virtual void accept(Visitor* visitor) {}
 	virtual ASTNode* clone() { return nullptr; }
@@ -29,6 +38,7 @@ struct ASTNode
 
 struct ASTStatement : ASTNode
 {
+	ASTStatement(NodeKind kind);
 	virtual ~ASTStatement() override {}
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
@@ -36,6 +46,7 @@ struct ASTStatement : ASTNode
 
 struct ASTDeclaration : ASTStatement
 {
+	ASTDeclaration(NodeKind kind);
 	virtual ~ASTDeclaration() override {}
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
@@ -43,6 +54,7 @@ struct ASTDeclaration : ASTStatement
 
 struct ASTType : ASTNode
 {
+	ASTType(NodeKind kind);
 	virtual ~ASTType() override {}
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
@@ -50,6 +62,7 @@ struct ASTType : ASTNode
 
 struct ASTName : ASTNode
 {
+	ASTName(NodeKind kind);
 	virtual ~ASTName() override {}
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
@@ -59,13 +72,22 @@ struct ASTExpression : ASTNode
 {
 	ASTType* type = nullptr;
 
-	virtual ~ASTExpression() override 
-	{
-		delete type;
-	}
-
+	ASTExpression(NodeKind kind);
+	virtual ~ASTExpression() override;
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
+};
+
+
+
+
+struct ASTTypePrimitive : ASTType
+{
+	PrimitiveType primitive_type;
+	ASTTypePrimitive(PrimitiveType primitive_type);
+	~ASTTypePrimitive() override;
+	void accept(Visitor* visitor) override {}
+	ASTNode* clone() override { return nullptr; }
 };
 
 

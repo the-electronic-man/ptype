@@ -6,6 +6,8 @@ struct Visitor
 	virtual void visit(ASTNameSimple* node) = 0;
 	virtual void visit(ASTNameQualified* node) = 0;
 
+	virtual void visit(ASTTypePrimitive* node) = 0;
+
 	virtual void visit(ASTExpressionCast* node) = 0;
 	virtual void visit(ASTExpressionGroup* node) = 0;
 	virtual void visit(ASTExpressionLiteral* node) = 0;
@@ -16,7 +18,27 @@ struct Visitor
 };
 
 
+
+ASTNode::ASTNode(NodeKind kind)
+{
+	this->kind = kind;
+}
+
+ASTExpression::ASTExpression(NodeKind kind) : ASTNode(kind) {}
+ASTExpression::~ASTExpression()
+{
+	delete type;
+}
+
+ASTStatement::ASTStatement(NodeKind kind) : ASTNode(kind) {}
+ASTDeclaration::ASTDeclaration(NodeKind kind) : ASTStatement(kind) {}
+ASTType::ASTType(NodeKind kind) : ASTNode(kind) {}
+ASTName::ASTName(NodeKind kind) : ASTNode(kind) {}
+
+
+
 ASTNameSimple::ASTNameSimple(Token token)
+	: ASTName(NodeKind::NAME_SIMPLE)
 {
 	this->token = token;
 }
@@ -36,7 +58,28 @@ ASTNode* ASTNameSimple::clone()
 
 
 
+ASTTypePrimitive::ASTTypePrimitive(PrimitiveType primitive_type)
+	: ASTType(NodeKind::TYPE_PRIMITIVE)
+{
+	this->primitive_type = primitive_type;
+}
+ASTTypePrimitive::~ASTTypePrimitive() {}
+
+void ASTTypePrimitive::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTTypePrimitive::clone()
+{
+	return new ASTTypePrimitive(primitive_type);
+}
+
+
+
+
 ASTNameQualified::ASTNameQualified(ASTName* qualifier, ASTNameSimple* name)
+	: ASTName(NodeKind::NAME_QUALIFIED)
 {
 	this->name = name;
 	this->qualifier = qualifier;
@@ -68,8 +111,8 @@ ASTNode* ASTNameQualified::clone()
 
 
 ASTExpressionLiteral::ASTExpressionLiteral(Token token)
+	: ASTExpression(NodeKind::EXPR_LITERAL)
 {
-	this->kind = NodeKind::EXPR_LITERAL;
 	this->token = token;
 }
 
@@ -90,8 +133,8 @@ ASTNode* ASTExpressionLiteral::clone()
 
 
 ASTExpressionUnary::ASTExpressionUnary(Token op, ASTExpression* expr)
+	: ASTExpression(NodeKind::EXPR_UNARY)
 {
-	this->kind = NodeKind::EXPR_UNARY;
 	this->op = op;
 	this->expr = expr;
 }
@@ -122,8 +165,8 @@ ASTNode* ASTExpressionUnary::clone()
 
 
 ASTExpressionBinary::ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right)
+	: ASTExpression(NodeKind::EXPR_BINARY)
 {
-	this->kind = NodeKind::EXPR_BINARY;
 	this->op = op;
 	this->left = left;
 	this->right = right;
@@ -156,8 +199,8 @@ ASTNode* ASTExpressionBinary::clone()
 
 
 ASTExpressionGroup::ASTExpressionGroup(ASTExpression* expr)
+	: ASTExpression(NodeKind::EXPR_GROUP)
 {
-	this->kind = NodeKind::EXPR_GROUP;
 	this->expr = expr;
 }
 
@@ -184,8 +227,8 @@ ASTNode* ASTExpressionGroup::clone()
 
 
 ASTExpressionCast::ASTExpressionCast(ASTExpression* expr, ASTType* dst_type)
+	: ASTExpression(NodeKind::EXPR_CAST)
 {
-	this->kind = NodeKind::EXPR_CAST;
 	this->expr = expr;
 	this->dst_type = dst_type;
 }
@@ -217,8 +260,8 @@ ASTNode* ASTExpressionCast::clone()
 
 
 ASTDeclarationVariable::ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr)
+	: ASTDeclaration(NodeKind::DECL_VAR)
 {
-	this->kind = NodeKind::DECL_VAR;
 	this->name = name;
 	this->type = type;
 	this->expr = expr;
