@@ -1,151 +1,9 @@
 #pragma once
 #include <ctype.h>
 #include <vector>
-#include "debug.h"
 
-enum class TokenKind
-{
-	NONE,
+#include "token.h"
 
-	IDENTIFIER,
-
-	LITERAL_NULL,
-	LITERAL_BOOL,
-	LITERAL_CHAR,
-	LITERAL_INT,
-	LITERAL_FLOAT,
-	LITERAL_STRING,
-
-	PLUS,
-	MINUS,
-	STAR,
-	SLASH,
-	PERCENT,
-
-	LESS_THAN,
-	LESS_EQUAL,
-	GREATER_THAN,
-	GREATER_EQUAL,
-	EQUALS,
-	NOT_EQUALS,
-
-	KW_VAR,
-
-	KW_AND,
-	KW_OR,
-	KW_NOT,
-
-	BIT_AND,
-	BIT_XOR,
-	BIT_OR,
-	BIT_COMP,
-
-	PUNCT_DOT,
-	PUNCT_COMMA,
-	PUNCT_COLON,
-	PUNCT_SEMICOLON,
-
-	GROUP_LEFT_BRAKET,
-	GROUP_RIGHT_BRACKET,
-	GROUP_LEFT_BRACE,
-	GROUP_RIGHT_BRACE,
-	GROUP_LEFT_PAREN,
-	GROUP_RIGHT_PAREN,
-
-	ASSIGN_DIRECT,
-
-	END_OF_FILE,
-};
-
-char* token_kind_to_string(TokenKind kind)
-{
-	static const char* token_kind_names[] =
-	{
-		"NONE",
-
-		"IDENTIFIER",
-
-		"LITERAL_NULL",
-		"LITERAL_BOOL",
-		"LITERAL_CHAR",
-		"LITERAL_INT",
-		"LITERAL_FLOAT",
-		"LITERAL_STRING",
-
-		"PLUS",
-		"MINUS",
-		"STAR",
-		"SLASH",
-		"PERCENT",
-
-		"LESS_THAN",
-		"LESS_EQUAL",
-		"GREATER_THAN",
-		"GREATER_EQUAL",
-		"EQUALS",
-		"NOT_EQUALS",
-
-		"KW_VAR",
-
-		"KW_AND",
-		"KW_OR",
-		"KW_NOT",
-
-		"BIT_AND",
-		"BIT_XOR",
-		"BIT_OR",
-		"BIT_COMP",
-
-		"PUNCT_DOT",
-		"PUNCT_COMMA",
-		"PUNCT_COLON",
-		"PUNCT_SEMICOLON",
-
-		"GROUP_LEFT_BRAKET",
-		"GROUP_RIGHT_BRACKET",
-		"GROUP_LEFT_BRACE",
-		"GROUP_RIGHT_BRACE",
-		"GROUP_LEFT_PAREN",
-		"GROUP_RIGHT_PAREN",
-
-		"ASSIGN_DIRECT",
-
-		"END_OF_FILE",
-	};
-
-	return (char*)token_kind_names[(size_t)kind];
-}
-
-struct Token
-{
-	TokenKind kind;
-
-	std::string buffer;
-
-	Token()
-	{
-		this->kind = TokenKind::NONE;
-		this->buffer = "";
-	}
-
-	Token(TokenKind kind)
-	{
-		this->kind = kind;
-		this->buffer = "";
-	}
-
-	Token(TokenKind kind, char* buffer, size_t buffer_length)
-	{
-		this->kind = kind;
-		this->buffer = std::string(buffer, buffer_length);
-	}
-
-	Token(TokenKind kind, std::string str)
-	{
-		this->kind = kind;
-		this->buffer = str;
-	}
-};
 
 struct Lexer
 {
@@ -153,14 +11,6 @@ struct Lexer
 	size_t buffer_length;
 	char ch;
 	size_t position;
-
-	Lexer(char* buffer, size_t buffer_length)
-	{
-		this->buffer = buffer;
-		this->buffer_length = buffer_length;
-		this->ch = buffer[0];
-		this->position = 0;
-	}
 
 	void advance()
 	{
@@ -272,23 +122,19 @@ struct Lexer
 		return Token(TokenKind::END_OF_FILE);
 	}
 
-};
-
-void pt_generate_tokens(char* buffer, size_t buffer_length, std::vector<Token>* token_list)
-{
-	Lexer lexer = Lexer(buffer, buffer_length);
-	Token token;
-	do
+	void get_token_list(std::vector<Token>& token_list, char* buffer, size_t buffer_length)
 	{
-		token = lexer.get_token();
-		token_list->push_back(token);
-		
-	} while (token.kind != TokenKind::END_OF_FILE);
+		this->buffer = buffer;
+		this->buffer_length = buffer_length;
+		this->ch = buffer[0];
+		this->position = 0;
 
+		Token token;
+		do
+		{
+			token = get_token();
+			token_list.push_back(token);
 
-	for (size_t i = 0; i < token_list->size(); i++)
-	{
-		Token tok = token_list->at(i);
-		pt_log("%s\t%s", token_kind_to_string(tok.kind), tok.buffer.data());
+		} while (token.kind != TokenKind::END_OF_FILE);
 	}
-}
+};

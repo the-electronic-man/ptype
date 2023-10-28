@@ -55,11 +55,17 @@ int pt_cmd_run_file(char* file_name)
 		pt_error("file '%s' is invalid", file_name);
 	}
 
+
+	Lexer lexer;
 	std::vector<Token> token_list;
 
-	pt_generate_tokens(buffer, buffer_length, &token_list);
+	lexer.get_token_list(token_list, buffer, buffer_length);
 
-
+	for (size_t i = 0; i < token_list.size(); i++)
+	{
+		Token token = token_list[i];
+		pt_log("%s\t%s", token_kind_to_string(token.kind), token.buffer.data());
+	}
 
 
 	return 0;
