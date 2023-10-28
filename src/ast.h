@@ -21,40 +21,46 @@ struct Visitor;
 struct ASTNode
 {
 	NodeKind kind;
-	virtual ~ASTNode() = 0;
-	virtual void accept(Visitor* visitor) = 0;
+	virtual ~ASTNode() {}
+	virtual void accept(Visitor* visitor) {}
 };
 
 struct ASTStatement : ASTNode
 {
-	virtual ~ASTStatement() override = 0;
-	virtual void accept(Visitor* visitor) override = 0;
+	virtual ~ASTStatement() override {}
+	virtual void accept(Visitor* visitor) override {}
 };
 
 struct ASTDeclaration : ASTStatement
 {
-	virtual ~ASTDeclaration() override = 0;
-	virtual void accept(Visitor* visitor) override = 0;
+	virtual ~ASTDeclaration() override {}
+	virtual void accept(Visitor* visitor) override {}
 };
 
 struct ASTType : ASTNode
 {
-	virtual ~ASTType() override = 0;
-	virtual void accept(Visitor* visitor) override = 0;
+	virtual ~ASTType() override {}
+	virtual void accept(Visitor* visitor) override {}
 };
 
 struct ASTName : ASTNode
 {
-	virtual ~ASTName() override = 0;
-	virtual void accept(Visitor* visitor) override = 0;
+	virtual ~ASTName() override {}
+	virtual void accept(Visitor* visitor) override {}
 };
 
 struct ASTExpression : ASTNode
 {
 	ASTType* type;
-	virtual ~ASTExpression() override = 0;
-	virtual void accept(Visitor* visitor) override = 0;
+
+	virtual ~ASTExpression() override 
+	{
+		delete type;
+	}
+
+	virtual void accept(Visitor* visitor) override {}
 };
+
 
 
 
@@ -63,7 +69,7 @@ struct ASTExpressionLiteral : ASTExpression
 	Token token;
 
 	ASTExpressionLiteral(Token token);
-	~ASTExpressionLiteral();
+	~ASTExpressionLiteral() override;
 	void accept(Visitor* visitor) override;
 };
 
@@ -73,7 +79,7 @@ struct ASTExpressionUnary : ASTExpression
 	ASTExpression* expr = nullptr;
 
 	ASTExpressionUnary(Token op, ASTExpression* expr);
-	~ASTExpressionUnary();
+	~ASTExpressionUnary() override;
 	void accept(Visitor* visitor) override;
 };
 
@@ -84,8 +90,30 @@ struct ASTExpressionBinary : ASTExpression
 	ASTExpression* right = nullptr;
 
 	ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right);
-	~ASTExpressionBinary();
+	~ASTExpressionBinary() override;
 	void accept(Visitor* visitor) override;
 };
 
+struct ASTExpressionGroup : ASTExpression
+{
+	ASTExpression* expr = nullptr;
+
+	ASTExpressionGroup(ASTExpression* expr);
+	~ASTExpressionGroup() override;
+	void accept(Visitor* visitor) override;
+};
+
+
+
+
+struct ASTDeclarationVariable : ASTDeclaration
+{
+	Token name;
+	ASTType* type = nullptr;
+	ASTExpression* expr = nullptr;
+
+	ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr);
+	~ASTDeclarationVariable();
+	void accept(Visitor* visitor) override;
+};
 

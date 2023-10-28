@@ -34,6 +34,7 @@
 	token_kind(BIT_XOR) \
 	token_kind(BIT_OR) \
 	token_kind(BIT_COMP) \
+	token_kind(PUNCT_TILDE) \
 	token_kind(PUNCT_DOT) \
 	token_kind(PUNCT_COMMA) \
 	token_kind(PUNCT_COLON) \
@@ -56,7 +57,7 @@ enum class TokenKind : int32_t
 #define token_kind(x) \
 	case TokenKind::x: return #x;
 
-std::string token_kind_to_string(TokenKind kind)
+static const char* token_kind_to_string(TokenKind kind)
 {
 	switch (kind)
 	{

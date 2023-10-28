@@ -102,6 +102,31 @@ struct Lexer
 					advance();
 					break;
 				}
+				case '+':
+				{
+					advance();
+					return Token(TokenKind::PLUS);
+				}
+				case '-':
+				{
+					advance();
+					return Token(TokenKind::MINUS);
+				}
+				case '*':
+				{
+					advance();
+					return Token(TokenKind::STAR);
+				}
+				case '/':
+				{
+					advance();
+					return Token(TokenKind::SLASH);
+				}
+				case '%':
+				{
+					advance();
+					return Token(TokenKind::PERCENT);
+				}
 				case '=':
 				{
 					advance();

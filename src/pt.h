@@ -4,6 +4,7 @@
 
 #include "debug.h"
 #include "lexer.h"
+#include "parser.h"
 
 void pt_cmd_print_help()
 {
@@ -67,6 +68,10 @@ int pt_cmd_run_file(char* file_name)
 		pt_log("%s\t%s", token_kind_to_string(token.kind), token.buffer.data());
 	}
 
+
+	Parser parser;
+
+	parser.parse(token_list.data(), token_list.size());
 
 	return 0;
 }
