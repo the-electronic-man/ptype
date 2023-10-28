@@ -3,6 +3,10 @@
 
 struct Visitor
 {
+	virtual void visit(ASTNameSimple* node) = 0;
+	virtual void visit(ASTNameQualified* node) = 0;
+
+	virtual void visit(ASTExpressionCast* node) = 0;
 	virtual void visit(ASTExpressionGroup* node) = 0;
 	virtual void visit(ASTExpressionLiteral* node) = 0;
 	virtual void visit(ASTExpressionUnary* node) = 0;
@@ -10,6 +14,56 @@ struct Visitor
 
 	virtual void visit(ASTDeclarationVariable* node) = 0;
 };
+
+
+ASTNameSimple::ASTNameSimple(Token token)
+{
+	this->token = token;
+}
+
+ASTNameSimple::~ASTNameSimple() {}
+
+void ASTNameSimple::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTNameSimple::clone()
+{
+	return new ASTNameSimple(token);
+}
+
+
+
+
+ASTNameQualified::ASTNameQualified(ASTName* qualifier, ASTNameSimple* name)
+{
+	this->name = name;
+	this->qualifier = qualifier;
+}
+
+ASTNameQualified::~ASTNameQualified()
+{
+	delete name;
+	delete qualifier;
+}
+
+void ASTNameQualified::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTNameQualified::clone()
+{
+	return 
+		new ASTNameQualified
+		(
+			(ASTName*)qualifier->clone(),
+			(ASTNameSimple*)name->clone()
+		);
+}
+
+
 
 
 
@@ -129,6 +183,39 @@ ASTNode* ASTExpressionGroup::clone()
 
 
 
+ASTExpressionCast::ASTExpressionCast(ASTExpression* expr, ASTType* dst_type)
+{
+	this->kind = NodeKind::EXPR_CAST;
+	this->expr = expr;
+	this->dst_type = dst_type;
+}
+
+ASTExpressionCast::~ASTExpressionCast()
+{
+	delete expr;
+	delete dst_type;
+}
+
+void ASTExpressionCast::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTExpressionCast::clone()
+{
+	ASTExpressionCast* node =
+		new ASTExpressionCast
+		(
+			(ASTExpression*)expr->clone(),
+			(ASTType*)dst_type->clone()
+		);
+	return node;
+}
+
+
+
+
+
 ASTDeclarationVariable::ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr)
 {
 	this->kind = NodeKind::DECL_VAR;
@@ -147,6 +234,18 @@ ASTDeclarationVariable::~ASTDeclarationVariable()
 void ASTDeclarationVariable::accept(Visitor* visitor)
 {
 	visitor->visit(this);
+}
+
+ASTNode* ASTDeclarationVariable::clone()
+{
+	ASTDeclarationVariable* node =
+		new ASTDeclarationVariable
+		(
+			name,
+			(ASTType*)type->clone(),
+			(ASTExpression*)expr->clone()
+		);
+	return node;
 }
 
 

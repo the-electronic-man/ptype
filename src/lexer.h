@@ -43,6 +43,7 @@ struct Lexer
 		TokenKind kind;
 
 		if (str == "var") { kind = TokenKind::KW_VAR; }
+		else if (str == "as") { kind = TokenKind::KW_AS; }
 		else if (str == "and") { kind = TokenKind::KW_AND; }
 		else if (str == "or") { kind = TokenKind::KW_OR; }
 		else if (str == "not") { kind = TokenKind::KW_NOT; }

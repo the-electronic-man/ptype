@@ -8,6 +8,7 @@ enum class NodeKind
 	EXPR_LITERAL,
 	EXPR_UNARY,
 	EXPR_BINARY,
+	EXPR_CAST,
 	EXPR_ARRAY_GET,
 	EXPR_ARRAY_SET,
 	EXPR_FIELD_GET,
@@ -70,6 +71,28 @@ struct ASTExpression : ASTNode
 
 
 
+struct ASTNameSimple : ASTName
+{
+	Token token;
+
+	ASTNameSimple(Token token);
+	~ASTNameSimple() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+struct ASTNameQualified : ASTName
+{
+	ASTName* qualifier = nullptr;
+	ASTNameSimple* name = nullptr;
+
+	ASTNameQualified(ASTName* qualifier, ASTNameSimple* name);
+	~ASTNameQualified() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+
 struct ASTExpressionLiteral : ASTExpression
 {
 	Token token;
@@ -109,6 +132,17 @@ struct ASTExpressionGroup : ASTExpression
 
 	ASTExpressionGroup(ASTExpression* expr);
 	~ASTExpressionGroup() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionCast : ASTExpression
+{
+	ASTType* dst_type = nullptr;
+	ASTExpression* expr = nullptr;
+
+	ASTExpressionCast(ASTExpression* expr, ASTType* dst_type);
+	~ASTExpressionCast() override;
 	void accept(Visitor* visitor) override;
 	ASTNode* clone() override;
 };
