@@ -26,6 +26,12 @@ void ASTExpressionLiteral::accept(Visitor* visitor)
 	visitor->visit(this);
 }
 
+ASTNode* ASTExpressionLiteral::clone()
+{
+	ASTExpressionLiteral* node = new ASTExpressionLiteral(token);
+	return node;
+}
+
 
 
 
@@ -45,6 +51,18 @@ void ASTExpressionUnary::accept(Visitor* visitor)
 {
 	visitor->visit(this);
 }
+
+ASTNode* ASTExpressionUnary::clone()
+{
+	ASTExpressionUnary* node = 
+		new ASTExpressionUnary
+		(
+			op, 
+			(ASTExpression*)expr->clone()
+		);
+	return node;
+}
+
 
 
 
@@ -68,6 +86,18 @@ void ASTExpressionBinary::accept(Visitor* visitor)
 	visitor->visit(this);
 }
 
+ASTNode* ASTExpressionBinary::clone()
+{
+	ASTExpressionBinary* node =
+		new ASTExpressionBinary
+		(
+			op,
+			(ASTExpression*)left->clone(),
+			(ASTExpression*)right->clone()
+		);
+	return node;
+}
+
 
 
 
@@ -86,6 +116,14 @@ void ASTExpressionGroup::accept(Visitor* visitor)
 {
 	visitor->visit(this);
 }
+
+ASTNode* ASTExpressionGroup::clone()
+{
+	ASTExpressionGroup* node =
+		new ASTExpressionGroup((ASTExpression*)expr->clone());
+	return node;
+}
+
 
 
 

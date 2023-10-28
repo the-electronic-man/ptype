@@ -23,35 +23,40 @@ struct ASTNode
 	NodeKind kind;
 	virtual ~ASTNode() {}
 	virtual void accept(Visitor* visitor) {}
+	virtual ASTNode* clone() { return nullptr; }
 };
 
 struct ASTStatement : ASTNode
 {
 	virtual ~ASTStatement() override {}
 	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
 };
 
 struct ASTDeclaration : ASTStatement
 {
 	virtual ~ASTDeclaration() override {}
 	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
 };
 
 struct ASTType : ASTNode
 {
 	virtual ~ASTType() override {}
 	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
 };
 
 struct ASTName : ASTNode
 {
 	virtual ~ASTName() override {}
 	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
 };
 
 struct ASTExpression : ASTNode
 {
-	ASTType* type;
+	ASTType* type = nullptr;
 
 	virtual ~ASTExpression() override 
 	{
@@ -59,6 +64,7 @@ struct ASTExpression : ASTNode
 	}
 
 	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
 };
 
 
@@ -71,6 +77,7 @@ struct ASTExpressionLiteral : ASTExpression
 	ASTExpressionLiteral(Token token);
 	~ASTExpressionLiteral() override;
 	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 struct ASTExpressionUnary : ASTExpression
@@ -81,6 +88,7 @@ struct ASTExpressionUnary : ASTExpression
 	ASTExpressionUnary(Token op, ASTExpression* expr);
 	~ASTExpressionUnary() override;
 	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 struct ASTExpressionBinary : ASTExpression
@@ -92,6 +100,7 @@ struct ASTExpressionBinary : ASTExpression
 	ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right);
 	~ASTExpressionBinary() override;
 	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 struct ASTExpressionGroup : ASTExpression
@@ -101,6 +110,7 @@ struct ASTExpressionGroup : ASTExpression
 	ASTExpressionGroup(ASTExpression* expr);
 	~ASTExpressionGroup() override;
 	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 
@@ -115,5 +125,6 @@ struct ASTDeclarationVariable : ASTDeclaration
 	ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr);
 	~ASTDeclarationVariable();
 	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
