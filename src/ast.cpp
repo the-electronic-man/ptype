@@ -1,23 +1,6 @@
 #pragma once
 #include "ast.h"
 
-struct Visitor
-{
-	virtual void visit(ASTNameSimple* node) = 0;
-	virtual void visit(ASTNameQualified* node) = 0;
-
-	virtual void visit(ASTTypePrimitive* node) = 0;
-
-	virtual void visit(ASTExpressionCast* node) = 0;
-	virtual void visit(ASTExpressionGroup* node) = 0;
-	virtual void visit(ASTExpressionLiteral* node) = 0;
-	virtual void visit(ASTExpressionUnary* node) = 0;
-	virtual void visit(ASTExpressionBinary* node) = 0;
-
-	virtual void visit(ASTDeclarationVariable* node) = 0;
-};
-
-
 
 ASTNode::ASTNode(NodeKind kind)
 {
@@ -258,6 +241,58 @@ ASTNode* ASTExpressionCast::clone()
 
 
 
+ASTStatementBlock::ASTStatementBlock(std::vector<ASTStatement*>& statements)
+	: ASTStatement(NodeKind::STMT_BLOCK)
+{
+	this->scope = new Scope(Scope::ScopeKind::Block);
+	this->statements = statements;
+}
+
+ASTStatementBlock::~ASTStatementBlock()
+{
+	delete scope;
+	for (size_t i = 0; i < statements.size(); i++)
+	{
+		delete statements[i];
+	}
+}
+
+void ASTStatementBlock::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTStatementBlock::clone()
+{
+	return nullptr;
+}
+
+
+
+
+ASTStatementExpression::ASTStatementExpression(ASTExpression* expr)
+	: ASTStatement(NodeKind::STMT_EXPR)
+{
+	this->expr = expr;
+}
+
+ASTStatementExpression::~ASTStatementExpression()
+{
+	delete expr;
+}
+
+void ASTStatementExpression::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTStatementExpression::clone()
+{
+	return new ASTStatementExpression((ASTExpression*)expr->clone());
+}
+
+
+
 
 ASTDeclarationVariable::ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr)
 	: ASTDeclaration(NodeKind::DECL_VAR)
@@ -269,7 +304,7 @@ ASTDeclarationVariable::ASTDeclarationVariable(Token name, ASTType* type, ASTExp
 
 ASTDeclarationVariable::~ASTDeclarationVariable()
 {
-	//delete name;
+	// delete name;
 	delete type;
 	delete expr;
 }

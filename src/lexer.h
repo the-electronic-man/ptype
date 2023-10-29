@@ -133,6 +133,11 @@ struct Lexer
 					advance();
 					return Token(TokenKind::ASSIGN_DIRECT);
 				}
+				case ':':
+				{
+					advance();
+					return Token(TokenKind::PUNCT_COLON);
+				}
 				case ';':
 				{
 					advance();

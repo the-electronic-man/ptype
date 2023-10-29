@@ -1,6 +1,7 @@
 #pragma once
 #include "token.h"
 #include "built_in_types.h"
+#include "symbol.h"
 
 enum class NodeKind
 {
@@ -20,6 +21,9 @@ enum class NodeKind
 	EXPR_ARRAY_SET,
 	EXPR_FIELD_GET,
 	EXPR_FIELD_SET,
+
+	STMT_EXPR,
+	STMT_BLOCK,
 
 	DECL_VAR,
 };
@@ -86,8 +90,8 @@ struct ASTTypePrimitive : ASTType
 	PrimitiveType primitive_type;
 	ASTTypePrimitive(PrimitiveType primitive_type);
 	~ASTTypePrimitive() override;
-	void accept(Visitor* visitor) override {}
-	ASTNode* clone() override { return nullptr; }
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 
@@ -171,7 +175,6 @@ struct ASTExpressionCast : ASTExpression
 
 
 
-
 struct ASTDeclarationVariable : ASTDeclaration
 {
 	Token name;
@@ -184,3 +187,69 @@ struct ASTDeclarationVariable : ASTDeclaration
 	ASTNode* clone() override;
 };
 
+
+
+
+
+struct ASTStatementBlock : ASTStatement
+{
+	Scope* scope = nullptr;
+	std::vector<ASTStatement*> statements;
+	int32_t var_index = 0;
+
+	ASTStatementBlock(std::vector<ASTStatement*>& statements);
+	~ASTStatementBlock() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+struct ASTStatementExpression : ASTStatement
+{
+	ASTExpression* expr = nullptr;
+
+	ASTStatementExpression(ASTExpression* expr);
+	~ASTStatementExpression() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct Visitor
+{
+	enum class PassType
+	{
+		Declare,
+		Resolve
+	};
+
+	PassType pass_type;
+
+	virtual void process(ASTNode* node) {}
+
+	virtual void visit(ASTNameSimple* node) {}
+	virtual void visit(ASTNameQualified* node) {}
+
+	virtual void visit(ASTTypePrimitive* node) {}
+
+	virtual void visit(ASTExpressionCast* node) {}
+	virtual void visit(ASTExpressionGroup* node) {}
+	virtual void visit(ASTExpressionLiteral* node) {}
+	virtual void visit(ASTExpressionUnary* node) {}
+	virtual void visit(ASTExpressionBinary* node) {}
+
+	virtual void visit(ASTStatementExpression* node) {}
+	virtual void visit(ASTStatementBlock* node) {}
+
+	virtual void visit(ASTDeclarationVariable* node) {}
+};

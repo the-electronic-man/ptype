@@ -33,5 +33,9 @@ struct Parser
 	ASTExpression* parse_expr_assignment();
 	ASTExpression* parse_expr();
 
+	ASTStatement* parse_stmt();
+	ASTStatement* parse_stmt_expr();
+	ASTStatement* parse_stmt_block();
+
 	ASTDeclaration* parse_decl_var();
 };
