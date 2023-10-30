@@ -6,6 +6,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "tree_printer.h"
+#include "semantic.h"
 
 void pt_cmd_print_help()
 {
@@ -61,10 +62,15 @@ int pt_cmd_run_file(char* file_name)
 	Lexer lexer;
 	Parser parser;
 	TreePrinter tree_printer;
+	SemanticAnalyzer semantic;
+
 	std::vector<Token> token_list;
 
 	lexer.get_token_list(token_list, buffer, buffer_length);
 	ASTNode* node = parser.parse(token_list.data(), token_list.size());
+
+	semantic.process(node);
+
 	tree_printer.output_file = std::ofstream("ast.xml");
 	tree_printer.process(node);
 	tree_printer.output_file.close();

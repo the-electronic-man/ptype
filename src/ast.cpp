@@ -28,11 +28,6 @@ ASTNameSimple::ASTNameSimple(Token token)
 
 ASTNameSimple::~ASTNameSimple() {}
 
-void ASTNameSimple::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTNameSimple::clone()
 {
 	return new ASTNameSimple(token);
@@ -47,11 +42,6 @@ ASTTypePrimitive::ASTTypePrimitive(PrimitiveType primitive_type)
 	this->primitive_type = primitive_type;
 }
 ASTTypePrimitive::~ASTTypePrimitive() {}
-
-void ASTTypePrimitive::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
 
 ASTNode* ASTTypePrimitive::clone()
 {
@@ -72,11 +62,6 @@ ASTNameQualified::~ASTNameQualified()
 {
 	delete name;
 	delete qualifier;
-}
-
-void ASTNameQualified::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTNameQualified::clone()
@@ -101,15 +86,9 @@ ASTExpressionLiteral::ASTExpressionLiteral(Token token)
 
 ASTExpressionLiteral::~ASTExpressionLiteral() {}
 
-void ASTExpressionLiteral::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTExpressionLiteral::clone()
 {
-	ASTExpressionLiteral* node = new ASTExpressionLiteral(token);
-	return node;
+	return new ASTExpressionLiteral(token);
 }
 
 
@@ -125,11 +104,6 @@ ASTExpressionUnary::ASTExpressionUnary(Token op, ASTExpression* expr)
 ASTExpressionUnary::~ASTExpressionUnary()
 {
 	delete expr;
-}
-
-void ASTExpressionUnary::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTExpressionUnary::clone()
@@ -161,11 +135,6 @@ ASTExpressionBinary::~ASTExpressionBinary()
 	delete right;
 }
 
-void ASTExpressionBinary::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTExpressionBinary::clone()
 {
 	ASTExpressionBinary* node =
@@ -192,11 +161,6 @@ ASTExpressionGroup::~ASTExpressionGroup()
 	delete expr;
 }
 
-void ASTExpressionGroup::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTExpressionGroup::clone()
 {
 	ASTExpressionGroup* node =
@@ -220,11 +184,6 @@ ASTExpressionCast::~ASTExpressionCast()
 {
 	delete expr;
 	delete dst_type;
-}
-
-void ASTExpressionCast::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTExpressionCast::clone()
@@ -253,11 +212,6 @@ ASTExpressionAssign::~ASTExpressionAssign()
 	delete expr;
 }
 
-void ASTExpressionAssign::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTExpressionAssign::clone()
 {
 	return new ASTExpressionAssign
@@ -280,11 +234,6 @@ ASTExpressionName::ASTExpressionName(ASTName* name)
 ASTExpressionName::~ASTExpressionName()
 {
 	delete name;
-}
-
-void ASTExpressionName::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTExpressionName::clone()
@@ -311,11 +260,6 @@ ASTStatementBlock::~ASTStatementBlock()
 	}
 }
 
-void ASTStatementBlock::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
 ASTNode* ASTStatementBlock::clone()
 {
 	return nullptr;
@@ -333,11 +277,6 @@ ASTStatementExpression::ASTStatementExpression(ASTExpression* expr)
 ASTStatementExpression::~ASTStatementExpression()
 {
 	delete expr;
-}
-
-void ASTStatementExpression::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTStatementExpression::clone()
@@ -361,11 +300,6 @@ ASTDeclarationVariable::~ASTDeclarationVariable()
 	// delete name;
 	delete type;
 	delete expr;
-}
-
-void ASTDeclarationVariable::accept(Visitor* visitor)
-{
-	visitor->visit(this);
 }
 
 ASTNode* ASTDeclarationVariable::clone()
