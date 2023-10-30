@@ -7,66 +7,69 @@
 #undef def_enum_item
 #endif
 
-#define def_enum_item(x) \
+#define ENUM_ITEM(x) \
 	x,
 
-#define def_enum_list \
-	def_enum_item(NONE) \
-	def_enum_item(IDENTIFIER) \
-	def_enum_item(LITERAL_NULL) \
-	def_enum_item(LITERAL_BOOL) \
-	def_enum_item(LITERAL_CHAR) \
-	def_enum_item(LITERAL_INT) \
-	def_enum_item(LITERAL_FLOAT) \
-	def_enum_item(LITERAL_STRING) \
-	def_enum_item(PLUS) \
-	def_enum_item(MINUS) \
-	def_enum_item(STAR) \
-	def_enum_item(SLASH) \
-	def_enum_item(PERCENT) \
-	def_enum_item(LESS_THAN) \
-	def_enum_item(LESS_EQUAL) \
-	def_enum_item(GREATER_THAN) \
-	def_enum_item(GREATER_EQUAL) \
-	def_enum_item(EQUALS) \
-	def_enum_item(NOT_EQUALS) \
-	def_enum_item(KW_VAR) \
-	def_enum_item(KW_AS) \
-	def_enum_item(KW_AND) \
-	def_enum_item(KW_OR) \
-	def_enum_item(KW_NOT) \
-	def_enum_item(BIT_AND) \
-	def_enum_item(BIT_XOR) \
-	def_enum_item(BIT_OR) \
-	def_enum_item(BIT_COMP) \
-	def_enum_item(PUNCT_TILDE) \
-	def_enum_item(PUNCT_DOT) \
-	def_enum_item(PUNCT_COMMA) \
-	def_enum_item(PUNCT_COLON) \
-	def_enum_item(PUNCT_SEMICOLON) \
-	def_enum_item(GROUP_LEFT_BRAKET) \
-	def_enum_item(GROUP_RIGHT_BRACKET) \
-	def_enum_item(GROUP_LEFT_BRACE) \
-	def_enum_item(GROUP_RIGHT_BRACE) \
-	def_enum_item(GROUP_LEFT_PAREN) \
-	def_enum_item(GROUP_RIGHT_PAREN) \
-	def_enum_item(ASSIGN_DIRECT) \
-	def_enum_item(END_OF_FILE) \
+#define ENUM_LIST \
+	ENUM_ITEM(NONE) \
+	ENUM_ITEM(IDENTIFIER) \
+	ENUM_ITEM(LITERAL_NULL) \
+	ENUM_ITEM(LITERAL_BOOL) \
+	ENUM_ITEM(LITERAL_CHAR) \
+	ENUM_ITEM(LITERAL_INT) \
+	ENUM_ITEM(LITERAL_FLOAT) \
+	ENUM_ITEM(LITERAL_STRING) \
+	ENUM_ITEM(PLUS) \
+	ENUM_ITEM(MINUS) \
+	ENUM_ITEM(STAR) \
+	ENUM_ITEM(SLASH) \
+	ENUM_ITEM(PERCENT) \
+	ENUM_ITEM(LESS_THAN) \
+	ENUM_ITEM(LESS_EQUAL) \
+	ENUM_ITEM(GREATER_THAN) \
+	ENUM_ITEM(GREATER_EQUAL) \
+	ENUM_ITEM(EQUALS) \
+	ENUM_ITEM(NOT_EQUALS) \
+	ENUM_ITEM(KW_VAR) \
+	ENUM_ITEM(KW_AS) \
+	ENUM_ITEM(KW_AND) \
+	ENUM_ITEM(KW_OR) \
+	ENUM_ITEM(KW_NOT) \
+	ENUM_ITEM(BIT_SHL) \
+	ENUM_ITEM(BIT_SHR) \
+	ENUM_ITEM(BIT_AND) \
+	ENUM_ITEM(BIT_XOR) \
+	ENUM_ITEM(BIT_OR) \
+	ENUM_ITEM(BIT_COMP) \
+	ENUM_ITEM(PUNCT_HASHTAG) \
+	ENUM_ITEM(PUNCT_TILDE) \
+	ENUM_ITEM(PUNCT_DOT) \
+	ENUM_ITEM(PUNCT_COMMA) \
+	ENUM_ITEM(PUNCT_COLON) \
+	ENUM_ITEM(PUNCT_SEMICOLON) \
+	ENUM_ITEM(GROUP_LEFT_BRAKET) \
+	ENUM_ITEM(GROUP_RIGHT_BRACKET) \
+	ENUM_ITEM(GROUP_LEFT_BRACE) \
+	ENUM_ITEM(GROUP_RIGHT_BRACE) \
+	ENUM_ITEM(GROUP_LEFT_PAREN) \
+	ENUM_ITEM(GROUP_RIGHT_PAREN) \
+	ENUM_ITEM(ASSIGN_DIRECT) \
+	ENUM_ITEM(END_OF_FILE) \
 
 enum class TokenKind : int32_t
 {
-	def_enum_list
+	ENUM_LIST
 };
 
-#undef def_enum_item
-#define def_enum_item(x) \
+#undef ENUM_ITEM
+#define ENUM_ITEM(x) \
 	case TokenKind::x: return #x;
 
 static const char* token_kind_to_string(TokenKind kind)
 {
 	switch (kind)
 	{
-		def_enum_list
+		ENUM_LIST
 		default: return "undefined";
 	}
 }

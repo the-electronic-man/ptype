@@ -3,30 +3,45 @@
 #include "built_in_types.h"
 #include "symbol.h"
 
+#define ENUM_ITEM(x) \
+	x,
+#define ENUM_LIST \
+	ENUM_ITEM(TYPE_PRIMITIVE) \
+	ENUM_ITEM(TYPE_REFERENCE) \
+	ENUM_ITEM(TYPE_ARRAY) \
+	ENUM_ITEM(NAME_SIMPLE) \
+	ENUM_ITEM(NAME_QUALIFIED) \
+	ENUM_ITEM(EXPR_GROUP) \
+	ENUM_ITEM(EXPR_LITERAL) \
+	ENUM_ITEM(EXPR_UNARY) \
+	ENUM_ITEM(EXPR_BINARY) \
+	ENUM_ITEM(EXPR_CAST) \
+	ENUM_ITEM(EXPR_ARRAY_GET) \
+	ENUM_ITEM(EXPR_ARRAY_SET) \
+	ENUM_ITEM(EXPR_FIELD_GET) \
+	ENUM_ITEM(EXPR_FIELD_SET) \
+	ENUM_ITEM(EXPR_ASSIGN) \
+	ENUM_ITEM(EXPR_NAME) \
+	ENUM_ITEM(STMT_EXPR) \
+	ENUM_ITEM(STMT_BLOCK) \
+	ENUM_ITEM(DECL_VAR) \
+
 enum class NodeKind
 {
-	TYPE_PRIMITIVE,
-	TYPE_REFERENCE,
-	TYPE_ARRAY,
-
-	NAME_SIMPLE,
-	NAME_QUALIFIED,
-
-	EXPR_GROUP,
-	EXPR_LITERAL,
-	EXPR_UNARY,
-	EXPR_BINARY,
-	EXPR_CAST,
-	EXPR_ARRAY_GET,
-	EXPR_ARRAY_SET,
-	EXPR_FIELD_GET,
-	EXPR_FIELD_SET,
-
-	STMT_EXPR,
-	STMT_BLOCK,
-
-	DECL_VAR,
+	ENUM_LIST
 };
+
+#define ENUM_ITEM(x) \
+	case NodeKind::x: return #x;
+
+static const char* node_kind_to_string(NodeKind kind)
+{
+	switch (kind)
+	{
+		ENUM_LIST
+		default: return "undefined";
+	}
+}
 
 struct Visitor;
 
@@ -173,6 +188,28 @@ struct ASTExpressionCast : ASTExpression
 	ASTNode* clone() override;
 };
 
+struct ASTExpressionAssign : ASTExpression
+{
+	ASTExpression* assignee = nullptr;
+	ASTExpression* expr = nullptr;
+
+	ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr);
+	~ASTExpressionAssign() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionName : ASTExpression
+{
+	ASTName* name = nullptr;
+
+	ASTExpressionName(ASTName* name);
+	~ASTExpressionName() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
+};
+
+
 
 
 struct ASTDeclarationVariable : ASTDeclaration
@@ -189,7 +226,7 @@ struct ASTDeclarationVariable : ASTDeclaration
 
 
 
-
+struct Scope;
 
 struct ASTStatementBlock : ASTStatement
 {
@@ -247,6 +284,8 @@ struct Visitor
 	virtual void visit(ASTExpressionLiteral* node) {}
 	virtual void visit(ASTExpressionUnary* node) {}
 	virtual void visit(ASTExpressionBinary* node) {}
+	virtual void visit(ASTExpressionAssign* node) {}
+	virtual void visit(ASTExpressionName* node) {}
 
 	virtual void visit(ASTStatementExpression* node) {}
 	virtual void visit(ASTStatementBlock* node) {}

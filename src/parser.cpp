@@ -81,6 +81,12 @@ ASTExpression* Parser::parse_expr_primary()
 			(void)expect(TokenKind::GROUP_RIGHT_PAREN);
 			return expr;
 		}
+		case TokenKind::IDENTIFIER:
+		{
+			ASTName* name = new ASTNameSimple(expect(crt_token.kind));
+			ASTExpressionName* node = new ASTExpressionName(name);
+			return node;
+		}
 		default:
 		{
 			return nullptr;
@@ -109,91 +115,117 @@ ASTExpression* Parser::parse_expr_unary()
 	}
 }
 
-ASTExpression* Parser::parse_expr_factor()
-{
-	ASTExpression* node = parse_expr_unary();
+#define parse_function(function_name, other_function_name, ...) \
+ASTExpression* Parser::function_name() \
+{ \
+	ASTExpression* node = other_function_name(); \
+	while (Match(crt_token.kind, { __VA_ARGS__ })) \
+	{ \
+		Token op = expect(crt_token.kind); \
+		node = new ASTExpressionBinary(op, node, function_name()); \
+	} \
+	return node; \
+} \
 
-	while (Match(crt_token.kind,
-		{ TokenKind::STAR, TokenKind::SLASH, TokenKind::PERCENT }))
-	{
-		Token op = expect(crt_token.kind);
-		node = new ASTExpressionBinary(op, node, parse_expr_factor());
-	}
+parse_function
+(
+	parse_expr_factor,
+	parse_expr_unary, 
+	TokenKind::STAR, TokenKind::SLASH, TokenKind::PERCENT
+)
 
-	return node;
-}
+parse_function
+(
+	parse_expr_term,
+	parse_expr_factor,
+	TokenKind::PLUS, TokenKind::MINUS
+)
 
-ASTExpression* Parser::parse_expr_term()
-{
-	ASTExpression* node = parse_expr_factor();
+parse_function
+(
+	parse_expr_shift,
+	parse_expr_term,
+	TokenKind::BIT_SHL, TokenKind::BIT_SHR
+)
 
-	while (Match(crt_token.kind,
-		{ TokenKind::PLUS, TokenKind::MINUS }))
-	{
-		Token op = expect(crt_token.kind);
-		node = new ASTExpressionBinary(op, node, parse_expr_term());
-	}
+parse_function
+(
+	parse_expr_relational,
+	parse_expr_shift,
+	TokenKind::LESS_THAN, TokenKind::LESS_EQUAL, TokenKind::GREATER_THAN, TokenKind::GREATER_EQUAL
+)
 
-	return node;
-}
+parse_function
+(
+	parse_expr_equality,
+	parse_expr_relational,
+	TokenKind::EQUALS, TokenKind::NOT_EQUALS
+)
 
-ASTExpression* Parser::parse_expr_shift()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
+parse_function
+(
+	parse_expr_bitwise_and,
+	parse_expr_equality,
+	TokenKind::BIT_AND
+)
 
-ASTExpression* Parser::parse_expr_relational()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
+parse_function
+(
+	parse_expr_bitwise_xor,
+	parse_expr_bitwise_and,
+	TokenKind::BIT_XOR
+)
 
-ASTExpression* Parser::parse_expr_equality()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
+parse_function
+(
+	parse_expr_bitwise_or,
+	parse_expr_bitwise_xor,
+	TokenKind::BIT_OR
+)
 
-ASTExpression* Parser::parse_expr_bitwise_and()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
+parse_function
+(
+	parse_expr_logic_and,
+	parse_expr_bitwise_or,
+	TokenKind::KW_AND
+)
 
-ASTExpression* Parser::parse_expr_bitwise_xor()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
-
-ASTExpression* Parser::parse_expr_bitwise_or()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
-
-ASTExpression* Parser::parse_expr_logic_and()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
-
-ASTExpression* Parser::parse_expr_logic_or()
-{
-	ASTExpression* node = nullptr;
-	return node;
-}
+parse_function
+(
+	parse_expr_logic_or,
+	parse_expr_logic_and,
+	TokenKind::KW_OR
+)
 
 ASTExpression* Parser::parse_expr_assignment()
 {
-	ASTExpression* node = nullptr;
-	return node;
+	ASTExpression* assignee = parse_expr_logic_or();
+	if (crt_token.kind == TokenKind::ASSIGN_DIRECT)
+	{
+		Token token = expect(crt_token.kind);
+		ASTExpression* expr = parse_expr_assignment();
+
+		switch (assignee->kind)
+		{
+			case NodeKind::EXPR_NAME:
+			{
+				ASTExpressionAssign* node = new ASTExpressionAssign(assignee, expr);
+				return node;
+			}
+			// TODO: field get
+			// TODO: array get
+			default:
+			{
+				pt_error("invalid assignment target");
+			}
+		}
+	}
+	return assignee;
 }
 
 ASTExpression* Parser::parse_expr()
 {
-	ASTExpression* node = parse_expr_term();
+	ASTExpression* node = parse_expr_assignment();
 	return node;
 }
 

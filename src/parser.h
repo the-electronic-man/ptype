@@ -12,7 +12,7 @@ struct Parser
 
 	Parser();
 
-	Token expect(TokenKind expected_token_kind, const char* msg = "");
+	Token expect(TokenKind expected_token_kind, const char* msg = "generic invalid token");
 
 	ASTNode* parse(Token* token_list, size_t token_count);
 

@@ -240,6 +240,60 @@ ASTNode* ASTExpressionCast::clone()
 
 
 
+ASTExpressionAssign::ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr)
+	: ASTExpression(NodeKind::EXPR_ASSIGN)
+{
+	this->assignee = assignee;
+	this->expr = expr;
+}
+
+ASTExpressionAssign::~ASTExpressionAssign()
+{
+	delete assignee;
+	delete expr;
+}
+
+void ASTExpressionAssign::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTExpressionAssign::clone()
+{
+	return new ASTExpressionAssign
+	(
+		(ASTExpression*)assignee->clone(),
+		(ASTExpression*)expr->clone()
+	);
+}
+
+
+
+
+
+ASTExpressionName::ASTExpressionName(ASTName* name)
+	: ASTExpression(NodeKind::EXPR_NAME)
+{
+	this->name = name;
+}
+
+ASTExpressionName::~ASTExpressionName()
+{
+	delete name;
+}
+
+void ASTExpressionName::accept(Visitor* visitor)
+{
+	visitor->visit(this);
+}
+
+ASTNode* ASTExpressionName::clone()
+{
+	return new ASTExpressionName((ASTName*)name->clone());
+}
+
+
+
 
 ASTStatementBlock::ASTStatementBlock(std::vector<ASTStatement*>& statements)
 	: ASTStatement(NodeKind::STMT_BLOCK)

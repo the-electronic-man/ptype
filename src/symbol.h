@@ -1,6 +1,8 @@
 #pragma once
 #include "ast.h"
 
+struct Symbol;
+
 struct Scope
 {
 	enum class ScopeKind
@@ -41,6 +43,8 @@ struct Symbol : Scope
 		this->symbol_kind = symbol_kind;
 	}
 };
+
+struct ASTType;
 
 struct SymbolVariable : Symbol
 {

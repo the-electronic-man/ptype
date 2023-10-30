@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "lexer.h"
 #include "parser.h"
+#include "tree_printer.h"
 
 void pt_cmd_print_help()
 {
@@ -58,20 +59,17 @@ int pt_cmd_run_file(char* file_name)
 
 
 	Lexer lexer;
+	Parser parser;
+	TreePrinter tree_printer;
 	std::vector<Token> token_list;
 
 	lexer.get_token_list(token_list, buffer, buffer_length);
+	ASTNode* node = parser.parse(token_list.data(), token_list.size());
+	tree_printer.output_file = std::ofstream("ast.xml");
+	tree_printer.process(node);
+	tree_printer.output_file.close();
 
-	for (size_t i = 0; i < token_list.size(); i++)
-	{
-		Token token = token_list[i];
-		pt_log("%s\t%s", token_kind_to_string(token.kind), token.buffer.data());
-	}
-
-
-	Parser parser;
-
-	parser.parse(token_list.data(), token_list.size());
+	delete node;
 
 	return 0;
 }
