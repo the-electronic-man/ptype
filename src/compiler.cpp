@@ -60,19 +60,52 @@ void Compiler::emit_arith_bin_op(PrimitiveType primitive_type, TokenKind op)
 
 void Compiler::emit_arith_un_op_i(TokenKind op)
 {
-
+	switch (op)
+	{
+		case TokenKind::PLUS:		/* nothing to do */ break;
+		case TokenKind::MINUS:		emit(Bytecode::neg_i); break;
+		default:					pt_unreachable();
+	}
 }
 
 void Compiler::emit_arith_un_op_f(TokenKind op)
 {
-
+	switch (op)
+	{
+		case TokenKind::PLUS:		/* nothing to do */ break;
+		case TokenKind::MINUS:		emit(Bytecode::neg_f); break;
+		default:					pt_unreachable();
+	}
 }
 
 void Compiler::emit_arith_un_op(PrimitiveType primitive_type, TokenKind op)
 {
-
+	switch (primitive_type)
+	{
+		case PrimitiveType::T_INT:		emit_arith_un_op_i(op); break;
+		case PrimitiveType::T_FLOAT:	emit_arith_un_op_f(op); break;
+		default:						pt_unreachable();
+	}
 }
 
+void Compiler::emit_convert_i2f() { emit(Bytecode::i2f); }
+
+void Compiler::emit_convert_f2i() { emit(Bytecode::f2i); }
+
+void Compiler::emit_convert(PrimitiveType src, PrimitiveType dst)
+{
+	if (src == dst)
+	{
+		return;
+	}
+
+	switch (src)
+	{
+		case PrimitiveType::T_FLOAT:	emit_convert_i2f(); break;
+		case PrimitiveType::T_INT:		emit_convert_f2i(); break;
+		default: pt_unreachable();
+	}
+}
 
 void Compiler::process(ASTNode* node)
 {
@@ -97,7 +130,10 @@ void Compiler::disassemble()
 
 void Compiler::visit(ASTExpressionCast* node)
 {
-
+	node->expr->accept(this);
+	PrimitiveType src = node->expr->type->primitive_type;
+	PrimitiveType dst = node->type->primitive_type;
+	emit_convert(src, dst);
 }
 
 void Compiler::visit(ASTExpressionGroup* node)
@@ -118,60 +154,15 @@ void Compiler::visit(ASTExpressionLiteral* node)
 void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
-	switch (node->type->primitive_type)
-	{
-		case PrimitiveType::T_INT:
-		{
-			switch (node->op.kind)
-			{
-				case TokenKind::PLUS: break;
-				case TokenKind::MINUS: code.push_back((uint8_t)Bytecode::neg_i); break;
-				default: break;
-			}
-			break;
-		}
-		case PrimitiveType::T_FLOAT:
-		{
 
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
+	emit_arith_un_op(node->expr->type->primitive_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionBinary* node)
 {
 	node->left->accept(this);
 	node->right->accept(this);
-
-	switch (node->type->primitive_type)
-	{
-		case PrimitiveType::T_INT:
-		{
-			switch (node->op.kind)
-			{
-				case TokenKind::PLUS: code.push_back((uint8_t)Bytecode::add_i); break;
-				case TokenKind::MINUS: code.push_back((uint8_t)Bytecode::sub_i); break;
-				case TokenKind::STAR: code.push_back((uint8_t)Bytecode::mul_i); break;
-				case TokenKind::SLASH: code.push_back((uint8_t)Bytecode::div_i); break;
-				case TokenKind::PERCENT: code.push_back((uint8_t)Bytecode::mod_i); break;
-				default: break;
-			}
-			break;
-		}
-		case PrimitiveType::T_FLOAT:
-		{
-
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
+	emit_arith_bin_op(node->type->primitive_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionAssign* node)
