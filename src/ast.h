@@ -6,9 +6,7 @@
 #define ENUM_ITEM(x) \
 	x,
 #define ENUM_LIST \
-	ENUM_ITEM(TYPE_PRIMITIVE) \
-	ENUM_ITEM(TYPE_REFERENCE) \
-	ENUM_ITEM(TYPE_ARRAY) \
+	ENUM_ITEM(TYPE) \
 	ENUM_ITEM(NAME_SIMPLE) \
 	ENUM_ITEM(NAME_QUALIFIED) \
 	ENUM_ITEM(EXPR_GROUP) \
@@ -50,7 +48,7 @@ static const char* node_kind_to_string(NodeKind kind)
 struct ASTNode;
 struct ASTNameSimple;
 struct ASTNameQualified;
-struct ASTTypePrimitive;
+struct ASTType;
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
 struct ASTExpressionLiteral;
@@ -64,20 +62,12 @@ struct ASTDeclarationVariable;
 
 struct Visitor
 {
-	enum class PassType
-	{
-		Declare,
-		Resolve
-	};
-
-	PassType pass_type;
-
 	virtual void process(ASTNode* node) {}
 
 	virtual void visit(ASTNameSimple* node) {}
 	virtual void visit(ASTNameQualified* node) {}
 
-	virtual void visit(ASTTypePrimitive* node) {}
+	virtual void visit(ASTType* node) {}
 
 	virtual void visit(ASTExpressionCast* node) {}
 	virtual void visit(ASTExpressionGroup* node) {}
@@ -120,12 +110,21 @@ struct ASTDeclaration : ASTStatement
 	virtual ASTNode* clone() override { return nullptr; }
 };
 
+struct ASTName;
+struct ASTType;
+
 struct ASTType : ASTNode
 {
-	ASTType(NodeKind kind);
-	virtual ~ASTType() override {}
-	virtual void accept(Visitor* visitor) override {}
-	virtual ASTNode* clone() override { return nullptr; }
+	PrimitiveType primitive_type;
+	ASTType* element_type = nullptr;
+	ASTName* reference_name = nullptr;
+
+	ASTType(PrimitiveType primitive_type);
+	ASTType(ASTType* element_type);
+	ASTType(ASTName* reference_name);
+	~ASTType() override;
+	void accept(Visitor* visitor) override;
+	ASTNode* clone() override;
 };
 
 struct ASTName : ASTNode
@@ -145,19 +144,6 @@ struct ASTExpression : ASTNode
 	virtual void accept(Visitor* visitor) override {}
 	virtual ASTNode* clone() override { return nullptr; }
 };
-
-
-
-
-struct ASTTypePrimitive : ASTType
-{
-	PrimitiveType primitive_type;
-	ASTTypePrimitive(PrimitiveType primitive_type);
-	~ASTTypePrimitive() override;
-	ASTNode* clone() override;
-	ast_node_accept_visitor
-};
-
 
 
 

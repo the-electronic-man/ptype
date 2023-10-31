@@ -45,14 +45,14 @@ ASTNode* Parser::parse(Token* token_list, size_t token_count)
 
 ASTType* Parser::parse_type()
 {
-	PrimitiveType type;
-	if (!is_string_a_primitive_type(type, crt_token.buffer))
+	PrimitiveType primitive_type;
+	if (!is_string_a_primitive_type(primitive_type, crt_token.buffer))
 	{
 		pt_log("%s is not a primitive type", crt_token.buffer.data());
 		return nullptr;
 	}
 	(void)expect(TokenKind::IDENTIFIER);
-	ASTType* node = new ASTTypePrimitive(type);
+	ASTType* node = new ASTType(primitive_type);
 	return node;
 }
 

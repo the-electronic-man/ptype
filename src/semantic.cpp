@@ -50,7 +50,7 @@ void SemanticAnalyzer::visit(ASTNameQualified* node)
 	}
 }
 
-void SemanticAnalyzer::visit(ASTTypePrimitive* node)
+void SemanticAnalyzer::visit(ASTType* node)
 {
 	switch (pass_type)
 	{
@@ -73,135 +73,71 @@ void SemanticAnalyzer::visit(ASTTypePrimitive* node)
 
 void SemanticAnalyzer::visit(ASTExpressionCast* node)
 {
-	switch (pass_type)
-	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
-
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
+	
 }
 
 void SemanticAnalyzer::visit(ASTExpressionGroup* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Resolve)
 	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
-
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		node->expr->accept(this);
 	}
 }
 
 void SemanticAnalyzer::visit(ASTExpressionLiteral* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Resolve)
 	{
-		case SemanticAnalyzer::PassType::Resolve:
+		switch (node->token.kind)
 		{
-			switch (node->token.kind)
+			case TokenKind::LITERAL_INT:
 			{
-				case TokenKind::LITERAL_INT:
-				{
-					node->type = new ASTTypePrimitive(PrimitiveType::T_INT);
-					break;
-				}
-				default:
-				{
-					break;
-				}
+				node->type = new ASTType(PrimitiveType::T_INT);
+				break;
 			}
-			break;
-		}
-		default:
-		{
-			break;
+			case TokenKind::LITERAL_FLOAT:
+			{
+				node->type = new ASTType(PrimitiveType::T_FLOAT);
+				break;
+			}
+			default:
+			{
+				break;
+			}
 		}
 	}
 }
 
 void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Resolve)
 	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
-
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-			node->expr->accept(this);
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		node->expr->accept(this);
+		node->type = (ASTType*)node->expr->type->clone();
 	}
 }
 
 void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Resolve)
 	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
-
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-			node->left->accept(this);
-			node->right->accept(this);
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		node->left->accept(this);
+		node->right->accept(this);
+		// TODO : just a temporary hack
+		node->type = (ASTType*)node->left->type->clone();
 	}
 }
 
 void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Resolve)
 	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
+		node->assignee->accept(this);
+		node->expr->accept(this);
+		// insert a cast node if needed
 
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-			node->assignee->accept(this);
-			node->expr->accept(this);
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		// the node's type will always be the assignee's type
+		// node->type = (ASTType*)node->assignee->type->clone();
 	}
 }
 

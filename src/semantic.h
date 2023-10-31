@@ -3,6 +3,15 @@
 
 struct SemanticAnalyzer : Visitor
 {
+	enum class PassType
+	{
+		Declare,
+		Resolve
+	};
+
+	PassType pass_type;
+
+
 	SymbolNamespace* global_scope = nullptr;
 	Scope* crt_scope = nullptr;
 
@@ -22,7 +31,7 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTNameSimple* node) override;
 	void visit(ASTNameQualified* node) override;
 
-	void visit(ASTTypePrimitive* node) override;
+	void visit(ASTType* node) override;
 
 	void visit(ASTExpressionCast* node) override;
 	void visit(ASTExpressionGroup* node) override;

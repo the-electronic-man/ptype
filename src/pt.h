@@ -77,11 +77,7 @@ int pt_cmd_run_file(char* file_name)
 	tree_printer.process(node);
 	tree_printer.output_file.close();
 
-	compiler.code.push_back((uint8_t)Bytecode::load_const);
-	compiler.code.push_back((uint8_t)100);
-	compiler.code.push_back((uint8_t)Bytecode::load_const);
-	compiler.code.push_back((uint8_t)200);
-	compiler.code.push_back((uint8_t)Bytecode::add_i);
+	compiler.process(node);
 
 	compiler.disassemble();
 

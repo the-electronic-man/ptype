@@ -71,7 +71,7 @@
 	ENUM_ITEM(cmp_gt, 4, -1) \
 	ENUM_ITEM(cmp_ge, 4, -1) \
 	/* other */ \
-	ENUM_ITEM(halt, 0) \
+	ENUM_ITEM(halt, 0, 0) \
 
 enum class Bytecode
 {
@@ -106,7 +106,7 @@ static int bytecode_operand_count(Bytecode code)
 
 #undef ENUM_ITEM
 #define ENUM_ITEM(mnemonic, operand_count, stack_transition) \
-	case Bytecode::mnemonic: return 0;
+	case Bytecode::mnemonic: return stack_transition;
 
 static int bytecode_stack_transition(Bytecode code)
 {

@@ -19,4 +19,15 @@ struct Compiler : Visitor
 	void visit(ASTExpressionName* node) override;
 
 	void visit(ASTDeclarationVariable* node) override;
+
+	void emit_pop();
+	void emit_dup();
+	void emit_const(uint8_t value);
+	void emit_arith_bin_op_i(TokenKind op);
+	void emit_arith_bin_op_f(TokenKind op);
+	void emit_arith_bin_op(PrimitiveType primitive_type, TokenKind op);
+	void emit_arith_un_op_i(TokenKind op);
+	void emit_arith_un_op_f(TokenKind op);
+	void emit_arith_un_op(PrimitiveType primitive_type, TokenKind op);
+
 };

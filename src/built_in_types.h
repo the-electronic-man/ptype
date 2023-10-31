@@ -13,6 +13,8 @@
 	ENUM_ITEM(T_CHAR) \
 	ENUM_ITEM(T_INT) \
 	ENUM_ITEM(T_FLOAT) \
+	ENUM_ITEM(T_ARRAY) \
+	ENUM_ITEM(T_REF) \
 
 
 enum class PrimitiveType
