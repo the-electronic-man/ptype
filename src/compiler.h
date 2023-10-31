@@ -1,9 +1,13 @@
 #pragma once
 #include "ast.h"
-
+#include "bytecode.h"
 
 struct Compiler : Visitor
 {
+	std::vector<uint8_t> code;
+
+	void disassemble();
+
 	void process(ASTNode* node) override;
 
 	void visit(ASTExpressionCast* node) override;

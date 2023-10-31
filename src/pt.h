@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "tree_printer.h"
 #include "semantic.h"
+#include "compiler.h"
 
 void pt_cmd_print_help()
 {
@@ -63,6 +64,7 @@ int pt_cmd_run_file(char* file_name)
 	Parser parser;
 	TreePrinter tree_printer;
 	SemanticAnalyzer semantic;
+	Compiler compiler;
 
 	std::vector<Token> token_list;
 
@@ -74,6 +76,14 @@ int pt_cmd_run_file(char* file_name)
 	tree_printer.output_file = std::ofstream("ast.xml");
 	tree_printer.process(node);
 	tree_printer.output_file.close();
+
+	compiler.code.push_back((uint8_t)Bytecode::load_const);
+	compiler.code.push_back((uint8_t)100);
+	compiler.code.push_back((uint8_t)Bytecode::load_const);
+	compiler.code.push_back((uint8_t)200);
+	compiler.code.push_back((uint8_t)Bytecode::add_i);
+
+	compiler.disassemble();
 
 	delete node;
 

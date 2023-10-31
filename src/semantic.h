@@ -3,6 +3,20 @@
 
 struct SemanticAnalyzer : Visitor
 {
+	SymbolNamespace* global_scope = nullptr;
+	Scope* crt_scope = nullptr;
+
+	SemanticAnalyzer()
+	{
+		global_scope = new SymbolNamespace(Token());
+		crt_scope = global_scope;
+	}
+
+	~SemanticAnalyzer()
+	{
+		delete global_scope;
+	}
+
 	void process(ASTNode* node) override;
 
 	void visit(ASTNameSimple* node) override;

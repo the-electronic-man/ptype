@@ -35,11 +35,13 @@ struct Symbol : Scope
 		Variable
 	};
 	
+	Token name;
 	SymbolKind symbol_kind = SymbolKind::None;
 
-	Symbol(SymbolKind symbol_kind, ScopeKind scope_kind)
+	Symbol(Token name, SymbolKind symbol_kind, ScopeKind scope_kind)
 		: Scope(scope_kind)
 	{
+		this->name = name;
 		this->symbol_kind = symbol_kind;
 	}
 };
@@ -50,15 +52,22 @@ struct SymbolVariable : Symbol
 {
 	ASTType* type = nullptr;
 
-	SymbolVariable(ASTType* type)
-		: Symbol(SymbolKind::Variable, ScopeKind::None)
-	{ 
-		this->type = type; 
+	SymbolVariable(Token name, ASTType* type)
+		: Symbol(name, SymbolKind::Variable, ScopeKind::None)
+	{
+		this->type = type;
 	}
-	~SymbolVariable() 
-	{ 
-		delete type; 
+	~SymbolVariable()
+	{
+		delete type;
 	}
+};
+
+struct SymbolNamespace : Symbol
+{
+	SymbolNamespace(Token name)
+		: Symbol(name, SymbolKind::Namespace, ScopeKind::Namespace) {}
+	~SymbolNamespace() {}
 };
 
 

@@ -207,21 +207,14 @@ void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 
 void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 {
-	switch (pass_type)
+	if (pass_type == SemanticAnalyzer::PassType::Declare)
 	{
-		case SemanticAnalyzer::PassType::Declare:
-		{
-
-			break;
-		}
-		case SemanticAnalyzer::PassType::Resolve:
-		{
-			node->expr->accept(this);
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		ASTType* var_type = node->type;
+		SymbolVariable* var_symbol = new SymbolVariable(node->name, var_type);
+		crt_scope->AddSymbol(var_symbol, node->name.buffer);
+	}
+	else
+	{
+		node->expr->accept(this);
 	}
 }
