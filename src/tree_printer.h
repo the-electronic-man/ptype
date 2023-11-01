@@ -12,6 +12,14 @@ struct TreePrinter : Visitor
 	void decrease_ident() { ident--; generate_ident_str(); }
 	void generate_ident_str() { ident_str = std::string(ident, '\t'); }
 
+	void xml_print
+	(
+		std::string name, 
+		std::vector<std::pair<std::string, std::string>> attributes = {},
+		std::vector<ASTNode*> children = {},
+		std::string content = ""
+	);
+
 	void process(ASTNode* node) override;
 
 	void visit(ASTNameSimple* node) override;
@@ -26,6 +34,13 @@ struct TreePrinter : Visitor
 	void visit(ASTExpressionBinary* node) override;
 	void visit(ASTExpressionAssign* node) override;
 	void visit(ASTExpressionName* node) override;
+	void visit(ASTExpressionFieldGet* node) override;
+	void visit(ASTExpressionFieldSet* node) override;
+	void visit(ASTExpressionArrayGet* node) override;
+	void visit(ASTExpressionArraySet* node) override;
 
 	void visit(ASTDeclarationVariable* node) override;
+
+	void visit(ASTStatementBlock* node) override;
+	void visit(ASTStatementExpression* node) override;
 };

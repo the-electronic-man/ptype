@@ -309,10 +309,104 @@ ASTNode* ASTExpressionName::clone()
 
 
 
+
+ASTExpressionFieldGet::ASTExpressionFieldGet(ASTExpression* expr, ASTNameSimple* field)
+	: ASTExpression(NodeKind::EXPR_FIELD_GET)
+{
+	this->expr = expr;
+	this->field = field;
+}
+
+ASTExpressionFieldGet::~ASTExpressionFieldGet()
+{
+	delete expr;
+}
+
+ASTNode* ASTExpressionFieldGet::clone()
+{
+	return new ASTExpressionFieldGet((ASTExpression*)expr->clone(), (ASTNameSimple*)field->clone());
+}
+
+
+
+
+
+
+
+ASTExpressionFieldSet::ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value)
+	: ASTExpression(NodeKind::EXPR_FIELD_SET)
+{
+	this->expr = expr;
+	this->field = field;
+	this->value = value;
+}
+
+ASTExpressionFieldSet::~ASTExpressionFieldSet()
+{
+	delete expr;
+	delete value;
+}
+
+ASTNode* ASTExpressionFieldSet::clone()
+{
+	return new ASTExpressionFieldSet((ASTExpression*)expr->clone(), (ASTNameSimple*)field->clone(), (ASTExpression*)value->clone());
+}
+
+
+
+
+
+ASTExpressionArrayGet::ASTExpressionArrayGet(ASTExpression* expr, ASTExpression* index)
+	: ASTExpression(NodeKind::EXPR_ARRAY_GET)
+{
+	this->expr = expr;
+	this->index = index;
+}
+
+ASTExpressionArrayGet::~ASTExpressionArrayGet()
+{
+	delete expr;
+	delete index;
+}
+
+ASTNode* ASTExpressionArrayGet::clone()
+{
+	return new ASTExpressionArrayGet((ASTExpression*)expr->clone(), (ASTExpression*)index->clone());
+}
+
+
+
+
+
+ASTExpressionArraySet::ASTExpressionArraySet(ASTExpression* expr, ASTExpression* index, ASTExpression* value)
+	: ASTExpression(NodeKind::EXPR_ARRAY_SET)
+{
+	this->expr = expr;
+	this->index = index;
+	this->value = value;
+}
+
+ASTExpressionArraySet::~ASTExpressionArraySet()
+{
+	delete expr;
+	delete index;
+	delete value;
+}
+
+ASTNode* ASTExpressionArraySet::clone()
+{
+	return new ASTExpressionArraySet((ASTExpression*)expr->clone(), (ASTExpression*)index->clone(), (ASTExpression*)value->clone());
+}
+
+
+
+
+
+
 ASTStatementBlock::ASTStatementBlock(std::vector<ASTStatement*>& statements)
 	: ASTStatement(NodeKind::STMT_BLOCK)
 {
-	this->scope = new Scope(Scope::ScopeKind::Block);
+	this->scope = nullptr;
 	this->statements = statements;
 }
 

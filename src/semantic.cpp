@@ -141,16 +141,43 @@ void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 	}
 }
 
+void SemanticAnalyzer::visit(ASTExpressionName* node)
+{
+	
+}
+
 void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 {
 	if (pass_type == SemanticAnalyzer::PassType::Declare)
 	{
-		ASTType* var_type = node->type;
-		SymbolVariable* var_symbol = new SymbolVariable(node->name, var_type);
+		SymbolVariable* var_symbol = 
+			new SymbolVariable
+			(
+				node->name, 
+				(ASTType*)node->type->clone()
+			);
+		var_symbol->index = crt_scope->var_index;
+		crt_scope->var_index++;
 		crt_scope->AddSymbol(var_symbol, node->name.buffer);
+		node->var_symbol = var_symbol;
 	}
 	else
 	{
 		node->expr->accept(this);
+		node->type = (ASTType*)node->expr->type->clone();
 	}
+}
+
+void SemanticAnalyzer::visit(ASTStatementBlock* node)
+{
+	if (pass_type == SemanticAnalyzer::PassType::Declare)
+	{
+		node->scope = new Scope(Scope::ScopeKind::BLOCK);
+	}
+
+	for (size_t i = 0; i < node->statements.size(); i++)
+	{
+		node->statements[i]->accept(this);
+	}
+
 }

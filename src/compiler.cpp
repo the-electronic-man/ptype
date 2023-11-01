@@ -1,7 +1,10 @@
 #include "compiler.h"
 
 #define emit(x, ...) \
-	code.insert(code.end(), (uint8_t)(x), __VA_ARGS__)
+	{ \
+		uint8_t arr[] = { (uint8_t)(x), __VA_ARGS__ }; \
+		code.insert(code.end(), arr, arr + (sizeof(arr) / sizeof(arr[0]))); \
+	} \
 
 void Compiler::emit_pop()
 {
@@ -13,9 +16,69 @@ void Compiler::emit_dup()
 	emit(Bytecode::dup);
 }
 
-void Compiler::emit_const(uint8_t value)
+void Compiler::emit_load_const(uint8_t value)
 {
 	emit(Bytecode::load_const, value);
+}
+
+void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
+{
+	switch (kind)
+	{
+		case SymbolVariable::GLOBAL:
+		{
+			pt_not_implemented();
+		}
+		case SymbolVariable::LOCAL:
+		case SymbolVariable::PARAMETER:
+		{
+			emit(Bytecode::load_local, index);
+			break;
+		}
+		case SymbolVariable::MEMBER:
+		{
+			emit(Bytecode::load_field, index);
+			break;
+		}
+		case SymbolVariable::STATIC:
+		{
+			pt_not_implemented();
+		}
+		default:
+		{
+			pt_unreachable();
+		}
+	}
+}
+
+void Compiler::emit_store(SymbolVariable::VariableKind kind, uint8_t index)
+{
+	switch (kind)
+	{
+		case SymbolVariable::GLOBAL:
+		{
+			pt_not_implemented();
+		}
+		case SymbolVariable::LOCAL:
+		case SymbolVariable::PARAMETER:
+		{
+			emit(Bytecode::store_local, index);
+			break;
+		}
+		case SymbolVariable::MEMBER:
+		{
+			emit(Bytecode::store_field, index);
+			break;
+		}
+		case SymbolVariable::STATIC:
+		{
+			pt_not_implemented();
+		}
+		default:
+		{
+			pt_unreachable();
+		}
+	}
 }
 
 void Compiler::emit_arith_bin_op_i(TokenKind op)
@@ -116,8 +179,9 @@ void Compiler::disassemble()
 {
 	for (size_t i = 0; i < code.size(); i++)
 	{
-		size_t operand_count = bytecode_operand_count((Bytecode)code[i]);
-		const char* mnemonic = bytecode_to_string((Bytecode)code[i]);
+		Bytecode inst = (Bytecode)code[i];
+		size_t operand_count = bytecode_operand_count(inst);
+		const char* mnemonic = bytecode_to_string(inst);
 		printf("%llu\t%s\t", i, mnemonic);
 		for (size_t j = 0; j < operand_count; j++)
 		{
@@ -148,7 +212,7 @@ void Compiler::visit(ASTExpressionLiteral* node)
 	// TODO :	emit the appropiate instruction
 	//			depending on value
 
-	emit_const(value);
+	emit_load_const(value);
 }
 
 void Compiler::visit(ASTExpressionUnary* node)
@@ -167,7 +231,10 @@ void Compiler::visit(ASTExpressionBinary* node)
 
 void Compiler::visit(ASTExpressionAssign* node)
 {
-
+	//uint8_t index = 0;
+	//node->expr->accept(this);
+	//emit_dup();
+	//emit_store_local(index);
 }
 
 void Compiler::visit(ASTExpressionName* node)

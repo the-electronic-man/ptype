@@ -27,7 +27,7 @@ Token Parser::expect(TokenKind expected_token_kind, const char* msg)
 	}
 	else
 	{
-		pt_error(msg);
+		pt_error("%s [%d:%d]", msg, crt_token.line, crt_token.column);
 	}
 
 	return last_token;
@@ -40,7 +40,14 @@ ASTNode* Parser::parse(Token* token_list, size_t token_count)
 	this->token_index = 0;
 	this->crt_token = token_list[token_index];
 
-	return parse_decl_var();
+	std::vector<ASTStatement*> statements;
+	while (crt_token.kind != TokenKind::END_OF_FILE)
+	{
+		ASTStatement* statement = parse_stmt();
+		statements.push_back(statement);
+	}
+	ASTStatementBlock* node = new ASTStatementBlock(statements);
+	return node;
 }
 
 ASTType* Parser::parse_type()
@@ -95,6 +102,59 @@ ASTExpression* Parser::parse_expr_primary()
 
 }
 
+ASTExpression* Parser::parse_expr_cast()
+{
+	if (crt_token.kind == TokenKind::KW_CAST)
+	{
+		(void)expect(TokenKind::KW_CAST);
+		(void)expect(TokenKind::GROUP_LEFT_PAREN, "expected '(' for cast expression");
+		ASTType* type = parse_type();
+		(void)expect(TokenKind::PUNCT_COMMA, "expected ',' after type");
+		ASTExpression* expr = parse_expr();
+		(void)expect(TokenKind::GROUP_RIGHT_PAREN, "expected ')' after cast expression");
+		return new ASTExpressionCast(expr, type);
+	}
+	else
+	{
+		return parse_expr_unary();
+	}
+}
+
+ASTExpression* Parser::parse_expr_postfix()
+{
+	ASTExpression* node = parse_expr_primary();
+	bool is_recursing = true;
+	while (is_recursing)
+	{
+		switch (crt_token.kind)
+		{
+			case TokenKind::PUNCT_DOT:
+			{
+				(void)expect(crt_token.kind);
+				Token field_name = expect(TokenKind::IDENTIFIER, "expected identifier as field name");
+				ASTNameSimple* field = new ASTNameSimple(field_name);
+				if (crt_token.kind == TokenKind::ASSIGN_DIRECT)
+				{
+					(void)expect(crt_token.kind);
+					ASTExpression* value = parse_expr_assignment();
+					node = new ASTExpressionFieldSet(node, field, value);
+				}
+				else
+				{
+					node = new ASTExpressionFieldGet(node, field);
+				}
+				break;
+			}
+			default:
+			{
+				is_recursing = false;
+				break;
+			}
+		}
+	}
+	return node;
+}
+
 ASTExpression* Parser::parse_expr_unary()
 {
 	switch (crt_token.kind)
@@ -105,12 +165,12 @@ ASTExpression* Parser::parse_expr_unary()
 		case TokenKind::PUNCT_TILDE:
 		{
 			Token op = expect(crt_token.kind);
-			ASTExpression* expr = parse_expr_primary();
+			ASTExpression* expr = parse_expr_cast();
 			return new ASTExpressionUnary(op, expr);
 		}
 		default:
 		{
-			return parse_expr_primary();
+			return parse_expr_postfix();
 		}
 	}
 }
@@ -127,75 +187,16 @@ ASTExpression* Parser::function_name() \
 	return node; \
 } \
 
-parse_function
-(
-	parse_expr_factor,
-	parse_expr_unary, 
-	TokenKind::STAR, TokenKind::SLASH, TokenKind::PERCENT
-)
-
-parse_function
-(
-	parse_expr_term,
-	parse_expr_factor,
-	TokenKind::PLUS, TokenKind::MINUS
-)
-
-parse_function
-(
-	parse_expr_shift,
-	parse_expr_term,
-	TokenKind::BIT_SHL, TokenKind::BIT_SHR
-)
-
-parse_function
-(
-	parse_expr_relational,
-	parse_expr_shift,
-	TokenKind::LESS_THAN, TokenKind::LESS_EQUAL, TokenKind::GREATER_THAN, TokenKind::GREATER_EQUAL
-)
-
-parse_function
-(
-	parse_expr_equality,
-	parse_expr_relational,
-	TokenKind::EQUALS, TokenKind::NOT_EQUALS
-)
-
-parse_function
-(
-	parse_expr_bitwise_and,
-	parse_expr_equality,
-	TokenKind::BIT_AND
-)
-
-parse_function
-(
-	parse_expr_bitwise_xor,
-	parse_expr_bitwise_and,
-	TokenKind::BIT_XOR
-)
-
-parse_function
-(
-	parse_expr_bitwise_or,
-	parse_expr_bitwise_xor,
-	TokenKind::BIT_OR
-)
-
-parse_function
-(
-	parse_expr_logic_and,
-	parse_expr_bitwise_or,
-	TokenKind::KW_AND
-)
-
-parse_function
-(
-	parse_expr_logic_or,
-	parse_expr_logic_and,
-	TokenKind::KW_OR
-)
+parse_function(parse_expr_factor, parse_expr_unary, TokenKind::STAR, TokenKind::SLASH, TokenKind::PERCENT)
+parse_function(parse_expr_term, parse_expr_factor, TokenKind::PLUS, TokenKind::MINUS)
+parse_function(parse_expr_shift, parse_expr_term, TokenKind::BIT_SHL, TokenKind::BIT_SHR)
+parse_function(parse_expr_relational, parse_expr_shift, TokenKind::LESS_THAN, TokenKind::LESS_EQUAL, TokenKind::GREATER_THAN, TokenKind::GREATER_EQUAL)
+parse_function(parse_expr_equality, parse_expr_relational, TokenKind::EQUALS, TokenKind::NOT_EQUALS)
+parse_function(parse_expr_bitwise_and, parse_expr_equality, TokenKind::BIT_AND)
+parse_function(parse_expr_bitwise_xor, parse_expr_bitwise_and, TokenKind::BIT_XOR)
+parse_function(parse_expr_bitwise_or, parse_expr_bitwise_xor, TokenKind::BIT_OR)
+parse_function(parse_expr_logic_and, parse_expr_bitwise_or, TokenKind::KW_AND)
+parse_function(parse_expr_logic_or, parse_expr_logic_and, TokenKind::KW_OR)
 
 ASTExpression* Parser::parse_expr_assignment()
 {
@@ -233,6 +234,10 @@ ASTStatement* Parser::parse_stmt()
 {
 	switch (crt_token.kind)
 	{
+		case TokenKind::KW_VAR:
+		{
+			return parse_decl_var();
+		}
 		case TokenKind::GROUP_LEFT_BRACE:
 		{
 			return parse_stmt_block();

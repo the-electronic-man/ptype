@@ -31,7 +31,7 @@
 	ENUM_ITEM(EQUALS) \
 	ENUM_ITEM(NOT_EQUALS) \
 	ENUM_ITEM(KW_VAR) \
-	ENUM_ITEM(KW_AS) \
+	ENUM_ITEM(KW_CAST) \
 	ENUM_ITEM(KW_AND) \
 	ENUM_ITEM(KW_OR) \
 	ENUM_ITEM(KW_NOT) \
@@ -77,7 +77,7 @@ static const char* token_kind_to_string(TokenKind kind)
 struct Token
 {
 	TokenKind kind;
-
+	size_t line = 1, column = 1;
 	std::string buffer;
 
 	Token();

@@ -71,15 +71,15 @@ int pt_cmd_run_file(char* file_name)
 	lexer.get_token_list(token_list, buffer, buffer_length);
 	ASTNode* node = parser.parse(token_list.data(), token_list.size());
 
-	semantic.process(node);
+	//semantic.process(node);
 
 	tree_printer.output_file = std::ofstream("ast.xml");
 	tree_printer.process(node);
 	tree_printer.output_file.close();
 
-	compiler.process(node);
+	//compiler.process(node);
 
-	compiler.disassemble();
+	//compiler.disassemble();
 
 	delete node;
 

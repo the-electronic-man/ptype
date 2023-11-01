@@ -7,13 +7,15 @@ struct Scope
 {
 	enum class ScopeKind
 	{
-		None,
-		Block,
-		Function,
-		Namespace,
+		NONE,
+		BLOCK,
+		FUNCTION,
+		NAMESPACE,
 	};
 
-	ScopeKind kind = ScopeKind::None;
+	ScopeKind kind = ScopeKind::NONE;
+
+	int32_t var_index = 0;
 
 	Scope* parent = nullptr;
 	std::unordered_map<std::string, Symbol*> symbols;
@@ -28,15 +30,15 @@ struct Symbol : Scope
 {
 	enum class SymbolKind
 	{
-		None,
-		Namespace,
-		Class,
-		Function,
-		Variable
+		NONE,
+		NAMESPACE,
+		CLASS,
+		FUNCTION,
+		VARIABLE
 	};
 	
 	Token name;
-	SymbolKind symbol_kind = SymbolKind::None;
+	SymbolKind symbol_kind = SymbolKind::NONE;
 
 	Symbol(Token name, SymbolKind symbol_kind, ScopeKind scope_kind)
 		: Scope(scope_kind)
@@ -51,9 +53,19 @@ struct ASTType;
 struct SymbolVariable : Symbol
 {
 	ASTType* type = nullptr;
+	int32_t index = -1;
+
+	enum VariableKind
+	{
+		GLOBAL,
+		LOCAL,
+		PARAMETER,
+		MEMBER,
+		STATIC
+	};
 
 	SymbolVariable(Token name, ASTType* type)
-		: Symbol(name, SymbolKind::Variable, ScopeKind::None)
+		: Symbol(name, SymbolKind::VARIABLE, ScopeKind::NONE)
 	{
 		this->type = type;
 	}
@@ -66,7 +78,7 @@ struct SymbolVariable : Symbol
 struct SymbolNamespace : Symbol
 {
 	SymbolNamespace(Token name)
-		: Symbol(name, SymbolKind::Namespace, ScopeKind::Namespace) {}
+		: Symbol(name, SymbolKind::NAMESPACE, ScopeKind::NAMESPACE) {}
 	~SymbolNamespace() {}
 };
 

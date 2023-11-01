@@ -39,6 +39,9 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTExpressionUnary* node) override;
 	void visit(ASTExpressionBinary* node) override;
 	void visit(ASTExpressionAssign* node) override;
+	void visit(ASTExpressionName* node) override;
 
 	void visit(ASTDeclarationVariable* node) override;
+
+	void visit(ASTStatementBlock* node) override;
 };

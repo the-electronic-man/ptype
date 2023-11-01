@@ -84,12 +84,26 @@
 	case '\v': \
 	case ' ' \
 
+void Lexer::update_cursor_position()
+{
+	if (ch == '\n')
+	{
+		column = 1;
+		line++;
+	}
+	else
+	{
+		column++;
+	}
+}
+
 void Lexer::advance()
 {
 	position++;
 	if (position < buffer_length)
 	{
 		ch = buffer[position];
+		update_cursor_position();
 	}
 	else
 	{
@@ -115,7 +129,7 @@ Token Lexer::get_identifier()
 	TokenKind kind;
 
 	if (str == "var") { kind = TokenKind::KW_VAR; }
-	else if (str == "as") { kind = TokenKind::KW_AS; }
+	else if (str == "cast") { kind = TokenKind::KW_CAST; }
 	else if (str == "and") { kind = TokenKind::KW_AND; }
 	else if (str == "or") { kind = TokenKind::KW_OR; }
 	else if (str == "not") { kind = TokenKind::KW_NOT; }
@@ -150,7 +164,7 @@ Token Lexer::get_number()
 	return Token(kind, buffer + it_begin, it_end - it_begin);
 }
 
-Token Lexer::get_token()
+Token Lexer::get_token_raw()
 {
 	while (ch != '\0')
 	{
@@ -268,6 +282,16 @@ Token Lexer::get_token()
 					}
 				}
 			}
+			case '.':
+			{
+				advance();
+				return Token(TokenKind::PUNCT_DOT);
+			}
+			case ',':
+			{
+				advance();
+				return Token(TokenKind::PUNCT_COMMA);
+			}
 			case ':':
 			{
 				advance();
@@ -287,12 +311,21 @@ Token Lexer::get_token()
 	return Token(TokenKind::END_OF_FILE);
 }
 
+Token Lexer::get_token()
+{
+	Token token = get_token_raw();
+	token.line = line;
+	token.column = column;
+	return token;
+}
+
 void Lexer::get_token_list(std::vector<Token>& token_list, char* buffer, size_t buffer_length)
 {
 	this->buffer = buffer;
 	this->buffer_length = buffer_length;
 	this->ch = buffer[0];
 	this->position = 0;
+	update_cursor_position();
 
 	Token token;
 	do

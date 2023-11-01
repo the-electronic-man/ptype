@@ -41,14 +41,13 @@ static const char* node_kind_to_string(NodeKind kind)
 	}
 }
 
-#define ast_node_accept_visitor \
-	void accept(Visitor* visitor) override { visitor->visit(this); }
-
-
 struct ASTNode;
+
 struct ASTNameSimple;
 struct ASTNameQualified;
+
 struct ASTType;
+
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
 struct ASTExpressionLiteral;
@@ -56,8 +55,14 @@ struct ASTExpressionUnary;
 struct ASTExpressionBinary;
 struct ASTExpressionAssign;
 struct ASTExpressionName;
+struct ASTExpressionFieldGet;
+struct ASTExpressionFieldSet;
+struct ASTExpressionArrayGet;
+struct ASTExpressionArraySet;
+
 struct ASTStatementExpression;
 struct ASTStatementBlock;
+
 struct ASTDeclarationVariable;
 
 struct Visitor
@@ -76,6 +81,10 @@ struct Visitor
 	virtual void visit(ASTExpressionBinary* node) {}
 	virtual void visit(ASTExpressionAssign* node) {}
 	virtual void visit(ASTExpressionName* node) {}
+	virtual void visit(ASTExpressionFieldGet* node) {}
+	virtual void visit(ASTExpressionFieldSet* node) {}
+	virtual void visit(ASTExpressionArrayGet* node) {}
+	virtual void visit(ASTExpressionArraySet* node) {}
 
 	virtual void visit(ASTStatementExpression* node) {}
 	virtual void visit(ASTStatementBlock* node) {}
@@ -153,7 +162,7 @@ struct ASTNameSimple : ASTName
 
 	ASTNameSimple(Token token);
 	~ASTNameSimple() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -164,7 +173,7 @@ struct ASTNameQualified : ASTName
 
 	ASTNameQualified(ASTName* qualifier, ASTNameSimple* name);
 	~ASTNameQualified() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -175,7 +184,7 @@ struct ASTExpressionLiteral : ASTExpression
 
 	ASTExpressionLiteral(Token token);
 	~ASTExpressionLiteral() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -186,7 +195,7 @@ struct ASTExpressionUnary : ASTExpression
 
 	ASTExpressionUnary(Token op, ASTExpression* expr);
 	~ASTExpressionUnary() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -198,7 +207,53 @@ struct ASTExpressionBinary : ASTExpression
 
 	ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right);
 	~ASTExpressionBinary() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionFieldGet : ASTExpression
+{
+	ASTNameSimple* field;
+	ASTExpression* expr = nullptr;
+
+	ASTExpressionFieldGet(ASTExpression* expr, ASTNameSimple* field);
+	~ASTExpressionFieldGet() override;
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionFieldSet : ASTExpression
+{
+	ASTNameSimple* field;
+	ASTExpression* expr = nullptr;
+	ASTExpression* value = nullptr;
+
+	ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value);
+	~ASTExpressionFieldSet() override;
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionArrayGet : ASTExpression
+{
+	ASTExpression* expr = nullptr;
+	ASTExpression* index = nullptr;
+
+	ASTExpressionArrayGet(ASTExpression* expr, ASTExpression* index);
+	~ASTExpressionArrayGet() override;
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override;
+};
+
+struct ASTExpressionArraySet : ASTExpression
+{
+	ASTExpression* expr = nullptr;
+	ASTExpression* index = nullptr;
+	ASTExpression* value = nullptr;
+
+	ASTExpressionArraySet(ASTExpression* expr, ASTExpression* index, ASTExpression* value);
+	~ASTExpressionArraySet() override;
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -208,7 +263,7 @@ struct ASTExpressionGroup : ASTExpression
 
 	ASTExpressionGroup(ASTExpression* expr);
 	~ASTExpressionGroup() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -219,7 +274,7 @@ struct ASTExpressionCast : ASTExpression
 
 	ASTExpressionCast(ASTExpression* expr, ASTType* dst_type);
 	~ASTExpressionCast() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -230,32 +285,37 @@ struct ASTExpressionAssign : ASTExpression
 
 	ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr);
 	~ASTExpressionAssign() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
+
+struct Symbol;
 
 struct ASTExpressionName : ASTExpression
 {
 	ASTName* name = nullptr;
+	Symbol* symbol = nullptr;
 
 	ASTExpressionName(ASTName* name);
 	~ASTExpressionName() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
 
 
+struct SymbolVariable;
 
 struct ASTDeclarationVariable : ASTDeclaration
 {
 	Token name;
 	ASTType* type = nullptr;
 	ASTExpression* expr = nullptr;
+	SymbolVariable* var_symbol = nullptr;
 
 	ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr);
 	~ASTDeclarationVariable();
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -271,7 +331,7 @@ struct ASTStatementBlock : ASTStatement
 
 	ASTStatementBlock(std::vector<ASTStatement*>& statements);
 	~ASTStatementBlock() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
 
@@ -281,6 +341,6 @@ struct ASTStatementExpression : ASTStatement
 
 	ASTStatementExpression(ASTExpression* expr);
 	~ASTStatementExpression() override;
-	ast_node_accept_visitor
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
 };
