@@ -216,7 +216,7 @@ Token Lexer::get_token_raw()
 					case '=':
 					{
 						advance();
-						return Token(TokenKind::EQUALS);
+						return Token(TokenKind::EQUAL);
 					}
 					default:
 					{
@@ -232,16 +232,16 @@ Token Lexer::get_token_raw()
 					case '<':
 					{
 						advance();
-						return Token(TokenKind::BIT_SHL);
+						return Token(TokenKind::LEFT_ANGLE_LEFT_ANGLE);
 					}
 					case '=':
 					{
 						advance();
-						return Token(TokenKind::LESS_EQUAL);
+						return Token(TokenKind::LEFT_ANGLE_EQUAL);
 					}
 					default:
 					{
-						return Token(TokenKind::LESS_THAN);
+						return Token(TokenKind::LEFT_ANGLE);
 					}
 				}
 			}
@@ -253,16 +253,16 @@ Token Lexer::get_token_raw()
 					case '>':
 					{
 						advance();
-						return Token(TokenKind::BIT_SHR);
+						return Token(TokenKind::RIGHT_ANGLE_RIGHT_ANGLE);
 					}
 					case '=':
 					{
 						advance();
-						return Token(TokenKind::GREATER_EQUAL);
+						return Token(TokenKind::RIGHT_ANGLE_EQUAL);
 					}
 					default:
 					{
-						return Token(TokenKind::GREATER_THAN);
+						return Token(TokenKind::RIGHT_ANGLE);
 					}
 				}
 			}
@@ -274,7 +274,7 @@ Token Lexer::get_token_raw()
 					case '=':
 					{
 						advance();
-						return Token(TokenKind::NOT_EQUALS);
+						return Token(TokenKind::NOT_EQUAL);
 					}
 					default:
 					{
@@ -285,22 +285,22 @@ Token Lexer::get_token_raw()
 			case '.':
 			{
 				advance();
-				return Token(TokenKind::PUNCT_DOT);
+				return Token(TokenKind::DOT);
 			}
 			case ',':
 			{
 				advance();
-				return Token(TokenKind::PUNCT_COMMA);
+				return Token(TokenKind::COMMA);
 			}
 			case ':':
 			{
 				advance();
-				return Token(TokenKind::PUNCT_COLON);
+				return Token(TokenKind::COLON);
 			}
 			case ';':
 			{
 				advance();
-				return Token(TokenKind::PUNCT_SEMICOLON);
+				return Token(TokenKind::SEMICOLON);
 			}
 			default:
 			{

@@ -81,11 +81,11 @@ ASTExpression* Parser::parse_expr_primary()
 			Token token = expect(crt_token.kind);
 			return new ASTExpressionLiteral(token);
 		}
-		case TokenKind::GROUP_LEFT_PAREN:
+		case TokenKind::LEFT_PAREN:
 		{
-			(void)expect(TokenKind::GROUP_LEFT_PAREN);
+			(void)expect(TokenKind::LEFT_PAREN);
 			ASTExpression* expr = new ASTExpressionGroup(parse_expr());
-			(void)expect(TokenKind::GROUP_RIGHT_PAREN);
+			(void)expect(TokenKind::RIGHT_PAREN);
 			return expr;
 		}
 		case TokenKind::IDENTIFIER:
@@ -107,11 +107,11 @@ ASTExpression* Parser::parse_expr_cast()
 	if (crt_token.kind == TokenKind::KW_CAST)
 	{
 		(void)expect(TokenKind::KW_CAST);
-		(void)expect(TokenKind::GROUP_LEFT_PAREN, "expected '(' for cast expression");
+		(void)expect(TokenKind::LEFT_PAREN, "expected '(' for cast expression");
 		ASTType* type = parse_type();
-		(void)expect(TokenKind::PUNCT_COMMA, "expected ',' after type");
+		(void)expect(TokenKind::COMMA, "expected ',' after type");
 		ASTExpression* expr = parse_expr();
-		(void)expect(TokenKind::GROUP_RIGHT_PAREN, "expected ')' after cast expression");
+		(void)expect(TokenKind::RIGHT_PAREN, "expected ')' after cast expression");
 		return new ASTExpressionCast(expr, type);
 	}
 	else
@@ -128,7 +128,7 @@ ASTExpression* Parser::parse_expr_postfix()
 	{
 		switch (crt_token.kind)
 		{
-			case TokenKind::PUNCT_DOT:
+			case TokenKind::DOT:
 			{
 				(void)expect(crt_token.kind);
 				Token field_name = expect(TokenKind::IDENTIFIER, "expected identifier as field name");
@@ -162,7 +162,7 @@ ASTExpression* Parser::parse_expr_unary()
 		case TokenKind::PLUS:
 		case TokenKind::MINUS:
 		case TokenKind::KW_NOT:
-		case TokenKind::PUNCT_TILDE:
+		case TokenKind::TILDE:
 		{
 			Token op = expect(crt_token.kind);
 			ASTExpression* expr = parse_expr_cast();
@@ -189,12 +189,12 @@ ASTExpression* Parser::function_name() \
 
 parse_function(parse_expr_factor, parse_expr_unary, TokenKind::STAR, TokenKind::SLASH, TokenKind::PERCENT)
 parse_function(parse_expr_term, parse_expr_factor, TokenKind::PLUS, TokenKind::MINUS)
-parse_function(parse_expr_shift, parse_expr_term, TokenKind::BIT_SHL, TokenKind::BIT_SHR)
-parse_function(parse_expr_relational, parse_expr_shift, TokenKind::LESS_THAN, TokenKind::LESS_EQUAL, TokenKind::GREATER_THAN, TokenKind::GREATER_EQUAL)
-parse_function(parse_expr_equality, parse_expr_relational, TokenKind::EQUALS, TokenKind::NOT_EQUALS)
-parse_function(parse_expr_bitwise_and, parse_expr_equality, TokenKind::BIT_AND)
-parse_function(parse_expr_bitwise_xor, parse_expr_bitwise_and, TokenKind::BIT_XOR)
-parse_function(parse_expr_bitwise_or, parse_expr_bitwise_xor, TokenKind::BIT_OR)
+parse_function(parse_expr_shift, parse_expr_term, TokenKind::LEFT_ANGLE_LEFT_ANGLE, TokenKind::RIGHT_ANGLE_RIGHT_ANGLE)
+parse_function(parse_expr_relational, parse_expr_shift, TokenKind::LEFT_ANGLE, TokenKind::LEFT_ANGLE_EQUAL, TokenKind::RIGHT_ANGLE, TokenKind::RIGHT_ANGLE_EQUAL)
+parse_function(parse_expr_equality, parse_expr_relational, TokenKind::EQUAL, TokenKind::NOT_EQUAL)
+parse_function(parse_expr_bitwise_and, parse_expr_equality, TokenKind::AMPERSAND)
+parse_function(parse_expr_bitwise_xor, parse_expr_bitwise_and, TokenKind::CARET)
+parse_function(parse_expr_bitwise_or, parse_expr_bitwise_xor, TokenKind::VERTICAL_BAR)
 parse_function(parse_expr_logic_and, parse_expr_bitwise_or, TokenKind::KW_AND)
 parse_function(parse_expr_logic_or, parse_expr_logic_and, TokenKind::KW_OR)
 
@@ -208,7 +208,7 @@ ASTExpression* Parser::parse_expr_assignment()
 
 		switch (assignee->kind)
 		{
-			case NodeKind::EXPR_NAME:
+			case NodeKind::expr_name:
 			{
 				ASTExpressionAssign* node = new ASTExpressionAssign(assignee, expr);
 				return node;
@@ -238,7 +238,7 @@ ASTStatement* Parser::parse_stmt()
 		{
 			return parse_decl_var();
 		}
-		case TokenKind::GROUP_LEFT_BRACE:
+		case TokenKind::LEFT_BRACE:
 		{
 			return parse_stmt_block();
 		}
@@ -253,23 +253,23 @@ ASTStatement* Parser::parse_stmt_expr()
 {
 	ASTExpression* expr = parse_expr();
 	ASTStatementExpression* node = new ASTStatementExpression(expr);
-	(void)expect(TokenKind::PUNCT_SEMICOLON, "expected ';' after expression statement");
+	(void)expect(TokenKind::SEMICOLON, "expected ';' after expression statement");
 	return node;
 }
 
 ASTStatement* Parser::parse_stmt_block()
 {
 	std::vector<ASTStatement*> statements;
-	(void)expect(TokenKind::GROUP_LEFT_BRACE);
+	(void)expect(TokenKind::LEFT_BRACE);
 
-	while (crt_token.kind != TokenKind::GROUP_RIGHT_BRACE
+	while (crt_token.kind != TokenKind::RIGHT_BRACE
 		&& crt_token.kind != TokenKind::END_OF_FILE)
 	{
 		ASTStatement* statement = parse_stmt();
 		statements.push_back(statement);
 	}
 
-	(void)expect(TokenKind::GROUP_RIGHT_BRACE, "expected '}' after block statement");
+	(void)expect(TokenKind::RIGHT_BRACE, "expected '}' after block statement");
 
 	ASTStatementBlock* node = new ASTStatementBlock(statements);
 	return node;
@@ -292,10 +292,10 @@ ASTDeclaration* Parser::parse_decl_var()
 		{
 			(void)expect(crt_token.kind);
 			expr = parse_expr();
-			(void)expect(TokenKind::PUNCT_SEMICOLON, "expected ';' after variable declaration");
+			(void)expect(TokenKind::SEMICOLON, "expected ';' after variable declaration");
 			break;
 		}
-		case TokenKind::PUNCT_COLON:
+		case TokenKind::COLON:
 		{
 			(void)expect(crt_token.kind);
 			type = parse_type();
@@ -304,7 +304,7 @@ ASTDeclaration* Parser::parse_decl_var()
 				(void)expect(crt_token.kind);
 				expr = parse_expr();
 			}
-			(void)expect(TokenKind::PUNCT_SEMICOLON, "expected ';' after variable declaration");
+			(void)expect(TokenKind::SEMICOLON, "expected ';' after variable declaration");
 			break;
 		}
 		default:

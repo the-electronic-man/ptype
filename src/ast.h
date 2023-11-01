@@ -6,23 +6,23 @@
 #define ENUM_ITEM(x) \
 	x,
 #define ENUM_LIST \
-	ENUM_ITEM(TYPE) \
-	ENUM_ITEM(NAME_SIMPLE) \
-	ENUM_ITEM(NAME_QUALIFIED) \
-	ENUM_ITEM(EXPR_GROUP) \
-	ENUM_ITEM(EXPR_LITERAL) \
-	ENUM_ITEM(EXPR_UNARY) \
-	ENUM_ITEM(EXPR_BINARY) \
-	ENUM_ITEM(EXPR_CAST) \
-	ENUM_ITEM(EXPR_ARRAY_GET) \
-	ENUM_ITEM(EXPR_ARRAY_SET) \
-	ENUM_ITEM(EXPR_FIELD_GET) \
-	ENUM_ITEM(EXPR_FIELD_SET) \
-	ENUM_ITEM(EXPR_ASSIGN) \
-	ENUM_ITEM(EXPR_NAME) \
-	ENUM_ITEM(STMT_EXPR) \
-	ENUM_ITEM(STMT_BLOCK) \
-	ENUM_ITEM(DECL_VAR) \
+	ENUM_ITEM(type) \
+	ENUM_ITEM(name_simple) \
+	ENUM_ITEM(name_qualified) \
+	ENUM_ITEM(expr_group) \
+	ENUM_ITEM(expr_literal) \
+	ENUM_ITEM(expr_unary) \
+	ENUM_ITEM(expr_binary) \
+	ENUM_ITEM(expr_cast) \
+	ENUM_ITEM(expr_array_get) \
+	ENUM_ITEM(expr_array_set) \
+	ENUM_ITEM(expr_field_get) \
+	ENUM_ITEM(expr_field_set) \
+	ENUM_ITEM(expr_assign) \
+	ENUM_ITEM(expr_name) \
+	ENUM_ITEM(stmt_expr) \
+	ENUM_ITEM(stmt_block) \
+	ENUM_ITEM(decl_var) \
 
 enum class NodeKind
 {
