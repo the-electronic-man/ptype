@@ -3,43 +3,15 @@
 #include "built_in_types.h"
 #include "symbol.h"
 
-#define ENUM_ITEM(x) \
-	x,
-#define ENUM_LIST \
-	ENUM_ITEM(type) \
-	ENUM_ITEM(name_simple) \
-	ENUM_ITEM(name_qualified) \
-	ENUM_ITEM(expr_group) \
-	ENUM_ITEM(expr_literal) \
-	ENUM_ITEM(expr_unary) \
-	ENUM_ITEM(expr_binary) \
-	ENUM_ITEM(expr_cast) \
-	ENUM_ITEM(expr_array_get) \
-	ENUM_ITEM(expr_array_set) \
-	ENUM_ITEM(expr_field_get) \
-	ENUM_ITEM(expr_field_set) \
-	ENUM_ITEM(expr_assign) \
-	ENUM_ITEM(expr_name) \
-	ENUM_ITEM(stmt_expr) \
-	ENUM_ITEM(stmt_block) \
-	ENUM_ITEM(decl_var) \
+#define ENUM_ITEM(name, str) \
+	name,
 
 enum class NodeKind
 {
-	ENUM_LIST
+#include "ast_kind.def"
 };
 
-#define ENUM_ITEM(x) \
-	case NodeKind::x: return #x;
-
-static const char* node_kind_to_string(NodeKind kind)
-{
-	switch (kind)
-	{
-		ENUM_LIST
-		default: return "undefined";
-	}
-}
+const char* node_kind_to_string(NodeKind kind);
 
 struct ASTNode;
 

@@ -198,6 +198,8 @@ parse_function(parse_expr_bitwise_or, parse_expr_bitwise_xor, TokenKind::VERTICA
 parse_function(parse_expr_logic_and, parse_expr_bitwise_or, TokenKind::KW_AND)
 parse_function(parse_expr_logic_or, parse_expr_logic_and, TokenKind::KW_OR)
 
+
+
 ASTExpression* Parser::parse_expr_assignment()
 {
 	ASTExpression* assignee = parse_expr_logic_or();
@@ -206,19 +208,14 @@ ASTExpression* Parser::parse_expr_assignment()
 		Token token = expect(crt_token.kind);
 		ASTExpression* expr = parse_expr_assignment();
 
-		switch (assignee->kind)
+		if (assignee->kind == NodeKind::EXPR_NAME)
 		{
-			case NodeKind::expr_name:
-			{
-				ASTExpressionAssign* node = new ASTExpressionAssign(assignee, expr);
-				return node;
-			}
-			// TODO: field get
-			// TODO: array get
-			default:
-			{
-				pt_error("invalid assignment target");
-			}
+			ASTExpressionAssign* node = new ASTExpressionAssign(assignee, expr);
+			return node;
+		}
+		else
+		{
+			pt_error("invalid assignment target");
 		}
 	}
 	return assignee;
@@ -234,18 +231,9 @@ ASTStatement* Parser::parse_stmt()
 {
 	switch (crt_token.kind)
 	{
-		case TokenKind::KW_VAR:
-		{
-			return parse_decl_var();
-		}
-		case TokenKind::LEFT_BRACE:
-		{
-			return parse_stmt_block();
-		}
-		default:
-		{
-			return parse_stmt_expr();
-		}
+		case TokenKind::KW_VAR:		return parse_decl_var();
+		case TokenKind::LEFT_BRACE:	return parse_stmt_block();
+		default:					return parse_stmt_expr();
 	}
 }
 
@@ -279,6 +267,10 @@ ASTDeclaration* Parser::parse_decl_var()
 {
 	// ----------------------------------------------------------------
 	// var <name> ('=' <expr> | ':' <type> ('=' <expr>)? )
+	// 
+	// var int a = 3, b = 5;
+	// var k = 4, j = 5;
+	// 
 	// ----------------------------------------------------------------
 
 	(void)expect(TokenKind::KW_VAR);

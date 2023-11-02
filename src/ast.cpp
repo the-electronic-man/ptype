@@ -1,6 +1,17 @@
 #pragma once
 #include "ast.h"
 
+#define ENUM_ITEM(name, str) \
+	case NodeKind::name: return str;
+
+const char* node_kind_to_string(NodeKind kind)
+{
+	switch (kind)
+	{
+#include "ast_kind.def"
+		default: return "undefined";
+	}
+}
 
 ASTNode::ASTNode(NodeKind kind)
 {
@@ -20,7 +31,7 @@ ASTName::ASTName(NodeKind kind) : ASTNode(kind) {}
 
 
 ASTNameSimple::ASTNameSimple(Token token)
-	: ASTName(NodeKind::name_simple)
+	: ASTName(NodeKind::NAME_SIMPLE)
 {
 	this->token = token;
 }
@@ -35,18 +46,18 @@ ASTNode* ASTNameSimple::clone()
 
 
 
-ASTType::ASTType(PrimitiveType primitive_type) : ASTNode(NodeKind::type)
+ASTType::ASTType(PrimitiveType primitive_type) : ASTNode(NodeKind::TYPE)
 {
 	this->primitive_type = primitive_type;
 }
 
-ASTType::ASTType(ASTType* element_type) : ASTNode(NodeKind::type)
+ASTType::ASTType(ASTType* element_type) : ASTNode(NodeKind::TYPE)
 {
 	this->primitive_type = PrimitiveType::T_ARRAY;
 	this->element_type = element_type;
 }
 
-ASTType::ASTType(ASTName* reference_name) : ASTNode(NodeKind::type)
+ASTType::ASTType(ASTName* reference_name) : ASTNode(NodeKind::TYPE)
 {
 	this->primitive_type = PrimitiveType::T_REF;
 	this->reference_name = reference_name;
@@ -117,7 +128,7 @@ ASTNode* ASTType::clone()
 
 
 ASTNameQualified::ASTNameQualified(ASTName* qualifier, ASTNameSimple* name)
-	: ASTName(NodeKind::name_qualified)
+	: ASTName(NodeKind::NAME_QUALIFIED)
 {
 	this->name = name;
 	this->qualifier = qualifier;
@@ -144,7 +155,7 @@ ASTNode* ASTNameQualified::clone()
 
 
 ASTExpressionLiteral::ASTExpressionLiteral(Token token)
-	: ASTExpression(NodeKind::expr_literal)
+	: ASTExpression(NodeKind::EXPR_LITERAL)
 {
 	this->token = token;
 }
@@ -160,7 +171,7 @@ ASTNode* ASTExpressionLiteral::clone()
 
 
 ASTExpressionUnary::ASTExpressionUnary(Token op, ASTExpression* expr)
-	: ASTExpression(NodeKind::expr_unary)
+	: ASTExpression(NodeKind::EXPR_UNARY)
 {
 	this->op = op;
 	this->expr = expr;
@@ -187,7 +198,7 @@ ASTNode* ASTExpressionUnary::clone()
 
 
 ASTExpressionBinary::ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right)
-	: ASTExpression(NodeKind::expr_binary)
+	: ASTExpression(NodeKind::EXPR_BINARY)
 {
 	this->op = op;
 	this->left = left;
@@ -216,7 +227,7 @@ ASTNode* ASTExpressionBinary::clone()
 
 
 ASTExpressionGroup::ASTExpressionGroup(ASTExpression* expr)
-	: ASTExpression(NodeKind::expr_group)
+	: ASTExpression(NodeKind::EXPR_GROUP)
 {
 	this->expr = expr;
 }
@@ -239,7 +250,7 @@ ASTNode* ASTExpressionGroup::clone()
 
 
 ASTExpressionCast::ASTExpressionCast(ASTExpression* expr, ASTType* dst_type)
-	: ASTExpression(NodeKind::expr_cast)
+	: ASTExpression(NodeKind::EXPR_CAST)
 {
 	this->expr = expr;
 	this->dst_type = dst_type;
@@ -265,7 +276,7 @@ ASTNode* ASTExpressionCast::clone()
 
 
 ASTExpressionAssign::ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr)
-	: ASTExpression(NodeKind::expr_assign)
+	: ASTExpression(NodeKind::EXPR_ASSIGN)
 {
 	this->assignee = assignee;
 	this->expr = expr;
@@ -291,7 +302,7 @@ ASTNode* ASTExpressionAssign::clone()
 
 
 ASTExpressionName::ASTExpressionName(ASTName* name)
-	: ASTExpression(NodeKind::expr_name)
+	: ASTExpression(NodeKind::EXPR_NAME)
 {
 	this->name = name;
 }
@@ -311,7 +322,7 @@ ASTNode* ASTExpressionName::clone()
 
 
 ASTExpressionFieldGet::ASTExpressionFieldGet(ASTExpression* expr, ASTNameSimple* field)
-	: ASTExpression(NodeKind::expr_field_get)
+	: ASTExpression(NodeKind::EXPR_FIELD_GET)
 {
 	this->expr = expr;
 	this->field = field;
@@ -334,7 +345,7 @@ ASTNode* ASTExpressionFieldGet::clone()
 
 
 ASTExpressionFieldSet::ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value)
-	: ASTExpression(NodeKind::expr_field_set)
+	: ASTExpression(NodeKind::EXPR_FIELD_SET)
 {
 	this->expr = expr;
 	this->field = field;
@@ -357,7 +368,7 @@ ASTNode* ASTExpressionFieldSet::clone()
 
 
 ASTExpressionArrayGet::ASTExpressionArrayGet(ASTExpression* expr, ASTExpression* index)
-	: ASTExpression(NodeKind::expr_array_get)
+	: ASTExpression(NodeKind::EXPR_ARRAY_GET)
 {
 	this->expr = expr;
 	this->index = index;
@@ -379,7 +390,7 @@ ASTNode* ASTExpressionArrayGet::clone()
 
 
 ASTExpressionArraySet::ASTExpressionArraySet(ASTExpression* expr, ASTExpression* index, ASTExpression* value)
-	: ASTExpression(NodeKind::expr_array_set)
+	: ASTExpression(NodeKind::EXPR_ARRAY_SET)
 {
 	this->expr = expr;
 	this->index = index;
@@ -404,7 +415,7 @@ ASTNode* ASTExpressionArraySet::clone()
 
 
 ASTStatementBlock::ASTStatementBlock(std::vector<ASTStatement*>& statements)
-	: ASTStatement(NodeKind::stmt_block)
+	: ASTStatement(NodeKind::STMT_BLOCK)
 {
 	this->scope = nullptr;
 	this->statements = statements;
@@ -428,7 +439,7 @@ ASTNode* ASTStatementBlock::clone()
 
 
 ASTStatementExpression::ASTStatementExpression(ASTExpression* expr)
-	: ASTStatement(NodeKind::stmt_expr)
+	: ASTStatement(NodeKind::STMT_EXPR)
 {
 	this->expr = expr;
 }
@@ -447,7 +458,7 @@ ASTNode* ASTStatementExpression::clone()
 
 
 ASTDeclarationVariable::ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr)
-	: ASTDeclaration(NodeKind::decl_var)
+	: ASTDeclaration(NodeKind::DECL_VAR)
 {
 	this->name = name;
 	this->type = type;
