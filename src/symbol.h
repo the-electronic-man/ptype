@@ -64,15 +64,8 @@ struct SymbolVariable : Symbol
 		STATIC
 	};
 
-	SymbolVariable(Token name, ASTType* type)
-		: Symbol(name, SymbolKind::VARIABLE, ScopeKind::NONE)
-	{
-		this->type = type;
-	}
-	~SymbolVariable()
-	{
-		delete type;
-	}
+	SymbolVariable(Token name, ASTType *type);
+	~SymbolVariable();
 };
 
 struct SymbolNamespace : Symbol

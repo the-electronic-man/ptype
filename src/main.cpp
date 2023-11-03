@@ -2,26 +2,22 @@
 
 int main(int32_t argc, char** argv)
 {
-	switch (argc)
+	if (argc >= 2)
 	{
-		case 2:
-		{
-			if (!strcmp(argv[1], "--help"))
-			{
-				pt_cmd_print_help();
-			}
-			else
-			{
-				pt_cmd_run_file(argv[1]);
-			}
-			break;
-		}
-		default:
+		if (!strcmp(argv[1], "--help"))
 		{
 			pt_cmd_print_help();
-			break;
+		}
+		else
+		{
+			pt_cmd_run_file(argv[1]);
 		}
 	}
+	else
+	{
+		pt_cmd_print_help();
+	}
 
+	printf("Done!\n");
 	return 0;
 }

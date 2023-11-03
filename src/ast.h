@@ -2,7 +2,12 @@
 #include "token.h"
 #include "built_in_types.h"
 #include "symbol.h"
+#include "debug.h"
 
+#include <vector>
+
+
+#undef ENUM_ITEM
 #define ENUM_ITEM(name, str) \
 	name,
 

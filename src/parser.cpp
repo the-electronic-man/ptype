@@ -1,6 +1,4 @@
 #include "parser.h"
-
-#pragma once
 #include "ast.h"
 #include "lexer.h"
 

@@ -14,4 +14,4 @@ ENUM_ITEM(EXPR_ASSIGN, "expr_assign") \
 ENUM_ITEM(EXPR_NAME, "expr_name") \
 ENUM_ITEM(STMT_EXPR, "stmt_expr") \
 ENUM_ITEM(STMT_BLOCK, "stmt_block") \
-ENUM_ITEM(DECL_VAR, "decl_var") \
+ENUM_ITEM(DECL_VAR, "decl_var")

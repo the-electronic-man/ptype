@@ -38,3 +38,13 @@ Symbol* Scope::GetSymbol(std::string& name)
 	}
 	return nullptr;
 }
+
+SymbolVariable::SymbolVariable(Token name, ASTType* type)
+		: Symbol(name, SymbolKind::VARIABLE, ScopeKind::NONE)
+{
+	this->type = type;
+}
+SymbolVariable::~SymbolVariable()
+{
+	delete type;
+}

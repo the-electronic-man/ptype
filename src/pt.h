@@ -19,7 +19,8 @@ The ptype command line tool has the following
 commands available:
     --help : display this help message
     <path> : compile & run the specified file
-----------------------------------------------------------------)");
+----------------------------------------------------------------
+)");
 }
 
 void pt_read_file(char** buffer, size_t* buffer_length, char* file_name)

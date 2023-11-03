@@ -1,4 +1,3 @@
-#pragma once
 #include "ast.h"
 
 #define ENUM_ITEM(name, str) \

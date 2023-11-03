@@ -8,17 +8,17 @@
 
 void Compiler::emit_pop()
 {
-	emit(Bytecode::pop);
+	emit(Bytecode::POP);
 }
 
 void Compiler::emit_dup()
 {
-	emit(Bytecode::dup);
+	emit(Bytecode::DUP);
 }
 
 void Compiler::emit_load_const(uint8_t value)
 {
-	emit(Bytecode::load_const, value);
+	emit(Bytecode::LOAD_CONST, value);
 }
 
 void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
@@ -32,12 +32,12 @@ void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
 		case SymbolVariable::LOCAL:
 		case SymbolVariable::PARAMETER:
 		{
-			emit(Bytecode::load_local, index);
+			emit(Bytecode::LOAD_LOCAL, index);
 			break;
 		}
 		case SymbolVariable::MEMBER:
 		{
-			emit(Bytecode::load_field, index);
+			emit(Bytecode::LOAD_FIELD, index);
 			break;
 		}
 		case SymbolVariable::STATIC:
@@ -62,12 +62,12 @@ void Compiler::emit_store(SymbolVariable::VariableKind kind, uint8_t index)
 		case SymbolVariable::LOCAL:
 		case SymbolVariable::PARAMETER:
 		{
-			emit(Bytecode::store_local, index);
+			emit(Bytecode::STORE_LOCAL, index);
 			break;
 		}
 		case SymbolVariable::MEMBER:
 		{
-			emit(Bytecode::store_field, index);
+			emit(Bytecode::STORE_FIELD, index);
 			break;
 		}
 		case SymbolVariable::STATIC:
@@ -86,11 +86,11 @@ void Compiler::emit_arith_bin_op_i(TokenKind op)
 	Bytecode inst;
 	switch (op)
 	{
-		case TokenKind::PLUS:		inst = Bytecode::add_i; break;
-		case TokenKind::MINUS:		inst = Bytecode::sub_i; break;
-		case TokenKind::STAR:		inst = Bytecode::mul_i; break;
-		case TokenKind::SLASH:		inst = Bytecode::div_i; break;
-		case TokenKind::PERCENT:	inst = Bytecode::mod_i; break;
+		case TokenKind::PLUS:		inst = Bytecode::ADD_I; break;
+		case TokenKind::MINUS:		inst = Bytecode::SUB_I; break;
+		case TokenKind::STAR:		inst = Bytecode::MUL_I; break;
+		case TokenKind::SLASH:		inst = Bytecode::DIV_I; break;
+		case TokenKind::PERCENT:	inst = Bytecode::MOD_I; break;
 		default:					pt_unreachable();
 	}
 	emit(inst);
@@ -101,11 +101,11 @@ void Compiler::emit_arith_bin_op_f(TokenKind op)
 	Bytecode inst;
 	switch (op)
 	{
-		case TokenKind::PLUS:		inst = Bytecode::add_f; break;
-		case TokenKind::MINUS:		inst = Bytecode::sub_f; break;
-		case TokenKind::STAR:		inst = Bytecode::mul_f; break;
-		case TokenKind::SLASH:		inst = Bytecode::div_f; break;
-		case TokenKind::PERCENT:	inst = Bytecode::mod_f; break;
+		case TokenKind::PLUS:		inst = Bytecode::ADD_F; break;
+		case TokenKind::MINUS:		inst = Bytecode::SUB_F; break;
+		case TokenKind::STAR:		inst = Bytecode::MUL_F; break;
+		case TokenKind::SLASH:		inst = Bytecode::DIV_F; break;
+		case TokenKind::PERCENT:	inst = Bytecode::MOD_F; break;
 		default:					pt_unreachable();
 	}
 	code.push_back((uint8_t)inst);
@@ -126,7 +126,7 @@ void Compiler::emit_arith_un_op_i(TokenKind op)
 	switch (op)
 	{
 		case TokenKind::PLUS:		/* nothing to do */ break;
-		case TokenKind::MINUS:		emit(Bytecode::neg_i); break;
+		case TokenKind::MINUS:		emit(Bytecode::NEG_I); break;
 		default:					pt_unreachable();
 	}
 }
@@ -136,7 +136,7 @@ void Compiler::emit_arith_un_op_f(TokenKind op)
 	switch (op)
 	{
 		case TokenKind::PLUS:		/* nothing to do */ break;
-		case TokenKind::MINUS:		emit(Bytecode::neg_f); break;
+		case TokenKind::MINUS:		emit(Bytecode::NEG_F); break;
 		default:					pt_unreachable();
 	}
 }
@@ -151,9 +151,9 @@ void Compiler::emit_arith_un_op(PrimitiveType primitive_type, TokenKind op)
 	}
 }
 
-void Compiler::emit_convert_i2f() { emit(Bytecode::i2f); }
+void Compiler::emit_convert_i2f() { emit(Bytecode::I2F); }
 
-void Compiler::emit_convert_f2i() { emit(Bytecode::f2i); }
+void Compiler::emit_convert_f2i() { emit(Bytecode::F2I); }
 
 void Compiler::emit_convert(PrimitiveType src, PrimitiveType dst)
 {

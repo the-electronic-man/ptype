@@ -1,6 +1,7 @@
 #pragma once
 #include "ast.h"
 #include "bytecode.h"
+#include "debug.h"
 
 struct Compiler : Visitor
 {

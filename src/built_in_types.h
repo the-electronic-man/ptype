@@ -1,12 +1,11 @@
 #pragma once
 #include <unordered_map>
 
-#ifdef ENUM_ITEM
 #undef ENUM_ITEM
-#endif
 #define ENUM_ITEM(x) \
 	x,
 
+#undef ENUM_LIST
 #define ENUM_LIST \
 	ENUM_ITEM(T_VOID) \
 	ENUM_ITEM(T_BOOL) \

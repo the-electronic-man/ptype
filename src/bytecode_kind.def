@@ -1,0 +1,68 @@
+ENUM_ITEM(NOP, "nop", 0, 0) \
+/* stack operations */ \
+ENUM_ITEM(LOAD_IMM, "load_imm", 4, 1) \
+ENUM_ITEM(LOAD_CONST, "load_const", 1, 1) \
+ENUM_ITEM(LOAD_LOCAL, "load_local", 1, 1) \
+ENUM_ITEM(LOAD_ARRAY, "load_array", 1, 1) \
+ENUM_ITEM(LOAD_FIELD, "load_field", 1, 1) \
+ENUM_ITEM(STORE_LOCAL ,"store_local", 1, -1) \
+ENUM_ITEM(STORE_ARRAY ,"store_array", 1, -1) \
+ENUM_ITEM(STORE_FIELD ,"store_field", 1, -1) \
+ENUM_ITEM(POP, "pop", 0, -1) \
+ENUM_ITEM(DUP, "dup", 0, 1) \
+/* int binary arithmetic */ \
+ENUM_ITEM(ADD_I, "add_i", 0, -1) \
+ENUM_ITEM(SUB_I, "sub_i", 0, -1) \
+ENUM_ITEM(MUL_I, "mul_i", 0, -1) \
+ENUM_ITEM(DIV_I, "div_i", 0, -1) \
+ENUM_ITEM(MOD_I, "mod_i", 0, -1) \
+/* int unary arithmetic */ \
+ENUM_ITEM(NEG_I, "neg_i", 0, 0) \
+ENUM_ITEM(INC_I, "inc_i", 0, 0) \
+/* conversion */ \
+ENUM_ITEM(I2F, "i2f", 0, 0) \
+ENUM_ITEM(F2I, "f2i", 0, 0) \
+/* int bitwise */ \
+ENUM_ITEM(AND_I, "and_i", 0, -1) \
+ENUM_ITEM(XOR_I, "xor_i", 0, -1) \
+ENUM_ITEM(OR_I, "or_i", 0, -1) \
+ENUM_ITEM(SHL_I, "shl_i", 0, -1) \
+ENUM_ITEM(SHR_I, "shr_i", 0, -1) \
+/* float arithmetic */ \
+ENUM_ITEM(ADD_F, "add_f", 0, -1) \
+ENUM_ITEM(SUB_F, "sub_f", 0, -1) \
+ENUM_ITEM(MUL_F, "mul_f", 0, -1) \
+ENUM_ITEM(DIV_F, "div_f", 0, -1) \
+ENUM_ITEM(MOD_F, "mod_f", 0, -1) \
+/* float unary arithmetic */ \
+ENUM_ITEM(NEG_F, "neg_f", 0, 0) \
+/* comparison with 0 */ \
+ENUM_ITEM(BR_EQ_Z, "br_eq_z", 4, -1) \
+ENUM_ITEM(BR_NE_Z, "br_ne_z", 4, -1) \
+ENUM_ITEM(BR_LT_Z, "br_lt_z", 4, -1) \
+ENUM_ITEM(BR_LE_Z, "br_le_z", 4, -1) \
+ENUM_ITEM(BR_GT_Z, "br_gt_z", 4, -1) \
+ENUM_ITEM(BR_GE_Z, "br_ge_z", 4, -1) \
+/* comparison with 2 ints */ \
+ENUM_ITEM(BR_EQ, "br_eq", 4, -2) \
+ENUM_ITEM(BR_NE, "br_ne", 4, -2) \
+ENUM_ITEM(BR_LT, "br_lt", 4, -2) \
+ENUM_ITEM(BR_LE, "br_le", 4, -2) \
+ENUM_ITEM(BR_GT, "br_gt", 4, -2) \
+ENUM_ITEM(BR_GE, "br_ge", 4, -2) \
+/* comparison with 0 */ \
+ENUM_ITEM(CMP_EQ_Z, "cmp_eq_z", 4, 0) \
+ENUM_ITEM(CMP_NE_Z, "cmp_ne_z", 4, 0) \
+ENUM_ITEM(CMP_LT_Z, "cmp_lt_z", 4, 0) \
+ENUM_ITEM(CMP_LE_Z, "cmp_le_z", 4, 0) \
+ENUM_ITEM(CMP_GT_Z, "cmp_gt_z", 4, 0) \
+ENUM_ITEM(CMP_GE_Z, "cmp_ge_z", 4, 0) \
+/* comparison with 2 ints */ \
+ENUM_ITEM(CMP_EQ, "cmp_eq", 4, -1) \
+ENUM_ITEM(CMP_NE, "cmp_ne", 4, -1) \
+ENUM_ITEM(CMP_LT, "cmp_lt", 4, -1) \
+ENUM_ITEM(CMP_LE, "cmp_le", 4, -1) \
+ENUM_ITEM(CMP_GT, "cmp_gt", 4, -1) \
+ENUM_ITEM(CMP_GE, "cmp_ge", 4, -1) \
+/* other */ \
+ENUM_ITEM(HALT, "halt", 0, 0) \

@@ -1,0 +1,15 @@
+set(SOURCES
+    ast.cpp
+    bytecode.cpp
+    compiler.cpp
+    debug.cpp
+    lexer.cpp
+    main.cpp
+    parser.cpp
+    semantic.cpp
+    symbol.cpp
+    token.cpp
+    vm.cpp
+    tree_printer.cpp)
+
+add_executable(app ${SOURCES})
