@@ -23,7 +23,9 @@ struct ASTNode;
 struct ASTNameSimple;
 struct ASTNameQualified;
 
-struct ASTType;
+struct ASTTypePrimitive;
+struct ASTTypeReference;
+struct ASTTypeArray;
 
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
@@ -49,7 +51,9 @@ struct Visitor
 	virtual void visit(ASTNameSimple* node) {}
 	virtual void visit(ASTNameQualified* node) {}
 
-	virtual void visit(ASTType* node) {}
+	virtual void visit(ASTTypePrimitive* node) {}
+	virtual void visit(ASTTypeReference* node) {}
+	virtual void visit(ASTTypeArray* node) {}
 
 	virtual void visit(ASTExpressionCast* node) {}
 	virtual void visit(ASTExpressionGroup* node) {}
@@ -101,16 +105,49 @@ struct ASTType;
 
 struct ASTType : ASTNode
 {
-	PrimitiveType primitive_type;
-	ASTType* element_type = nullptr;
-	ASTName* reference_name = nullptr;
+	ASTType(NodeKind kind) : ASTNode(kind) {}
+	virtual ~ASTType() override {}
+	virtual void accept(Visitor* visitor) override {}
+	virtual ASTNode* clone() override { return nullptr; }
+};
 
-	ASTType(PrimitiveType primitive_type);
-	ASTType(ASTType* element_type);
-	ASTType(ASTName* reference_name);
-	~ASTType() override;
-	void accept(Visitor* visitor) override;
+struct ASTTypePrimitive : ASTType
+{
+	PrimitiveType primitive_type;
+	ASTTypePrimitive(PrimitiveType primitive_type)
+		: ASTType(NodeKind::TYPE_PRIMITIVE)
+	{
+		this->primitive_type = primitive_type;
+	}
+	~ASTTypePrimitive() override {}
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override { return new ASTTypePrimitive(primitive_type); }
+};
+
+struct ASTTypeReference : ASTType
+{
+	ASTName* name = nullptr;
+	ASTTypeReference(ASTName* name)
+		: ASTType(NodeKind::TYPE_REFERENCE)
+	{
+		this->name = name;
+	}
+	~ASTTypeReference() override {}
+	void accept(Visitor* visitor) override { visitor->visit(this); }
 	ASTNode* clone() override;
+};
+
+struct ASTTypeArray : ASTType
+{
+	ASTType* subtype = nullptr;
+	ASTTypeArray(ASTType* subtype)
+		: ASTType(NodeKind::TYPE_ARRAY)
+	{
+		this->subtype = subtype;
+	}
+	~ASTTypeArray() override {}
+	void accept(Visitor* visitor) override { visitor->visit(this); }
+	ASTNode* clone() override { return new ASTTypeArray((ASTType*)subtype->clone()); }
 };
 
 struct ASTName : ASTNode

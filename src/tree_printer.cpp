@@ -86,47 +86,32 @@ void TreePrinter::visit(ASTNameQualified* node)
 	xml_print
 	(
 		node_kind_to_string(node->kind),
-		{}, 
+		{},
 		{
 			node->qualifier,
 			node->name
 		}
-	);
+		);
 }
 
-void TreePrinter::visit(ASTType* node)
+void TreePrinter::visit(ASTTypePrimitive* node)
 {
-	switch (node->primitive_type)
-	{
-		case PrimitiveType::T_ARRAY:
-		{
-			XML_PRINT_ELEMENT
-			(
-				node_kind_to_string(node->kind),
-				VISIT_CHILD(element_type)
-			)
-				break;
-		}
-		case PrimitiveType::T_REF:
-		{
-			XML_PRINT_ELEMENT
-			(
-				node_kind_to_string(node->kind),
-				VISIT_CHILD(reference_name)
-			)
-			break;
-		}
-		default:
-		{
-			XML_PRINT_ELEMENT_INLINE
-			(
-				node_kind_to_string(node->kind),
-				primitive_type_to_string(node->primitive_type)
-			)
-			break;
-		}
-	}
-	
+	XML_PRINT_ELEMENT_INLINE
+	(
+		node_kind_to_string(node->kind),
+		primitive_type_to_string(node->primitive_type)
+	)
+
+}
+
+void TreePrinter::visit(ASTTypeReference* node)
+{
+
+}
+
+void TreePrinter::visit(ASTTypeArray* node)
+{
+
 }
 
 void TreePrinter::visit(ASTExpressionCast* node)
@@ -152,9 +137,9 @@ void TreePrinter::visit(ASTExpressionLiteral* node)
 		XML_ATTR_LIST
 		(
 			XML_ATTR("value", node->token.buffer),
-		),
+			),
 		//VISIT_CHILD(type)
-	)
+		)
 }
 
 void TreePrinter::visit(ASTExpressionUnary* node)

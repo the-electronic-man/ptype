@@ -57,7 +57,7 @@ ASTType* Parser::parse_type()
 		return nullptr;
 	}
 	(void)expect(TokenKind::IDENTIFIER);
-	ASTType* node = new ASTType(primitive_type);
+	ASTTypePrimitive* node = new ASTTypePrimitive(primitive_type);
 	return node;
 }
 

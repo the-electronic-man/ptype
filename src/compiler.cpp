@@ -195,9 +195,9 @@ void Compiler::disassemble()
 void Compiler::visit(ASTExpressionCast* node)
 {
 	node->expr->accept(this);
-	PrimitiveType src = node->expr->type->primitive_type;
-	PrimitiveType dst = node->type->primitive_type;
-	emit_convert(src, dst);
+	//PrimitiveType src = node->expr->type->primitive_type;
+	//PrimitiveType dst = node->type->primitive_type;
+	//emit_convert(src, dst);
 }
 
 void Compiler::visit(ASTExpressionGroup* node)
@@ -219,14 +219,14 @@ void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
 
-	emit_arith_un_op(node->expr->type->primitive_type, node->op.kind);
+	//emit_arith_un_op(node->expr->type->primitive_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionBinary* node)
 {
 	node->left->accept(this);
 	node->right->accept(this);
-	emit_arith_bin_op(node->type->primitive_type, node->op.kind);
+	//emit_arith_bin_op(node->type->primitive_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionAssign* node)

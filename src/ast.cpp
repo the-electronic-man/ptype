@@ -45,84 +45,11 @@ ASTNode* ASTNameSimple::clone()
 
 
 
-ASTType::ASTType(PrimitiveType primitive_type) : ASTNode(NodeKind::TYPE)
-{
-	this->primitive_type = primitive_type;
-}
 
-ASTType::ASTType(ASTType* element_type) : ASTNode(NodeKind::TYPE)
+ASTNode* ASTTypeReference::clone()
 {
-	this->primitive_type = PrimitiveType::T_ARRAY;
-	this->element_type = element_type;
+	return new ASTTypeReference((ASTName*)name->clone());
 }
-
-ASTType::ASTType(ASTName* reference_name) : ASTNode(NodeKind::TYPE)
-{
-	this->primitive_type = PrimitiveType::T_REF;
-	this->reference_name = reference_name;
-}
-
-ASTType::~ASTType()
-{
-	switch (primitive_type)
-	{
-		case PrimitiveType::T_VOID:
-		case PrimitiveType::T_BOOL:
-		case PrimitiveType::T_CHAR:
-		case PrimitiveType::T_INT:
-		case PrimitiveType::T_FLOAT:
-		{
-			break;
-		}
-		case PrimitiveType::T_REF:
-		{
-			delete reference_name;
-			break;
-		}
-		case PrimitiveType::T_ARRAY:
-		{
-			delete element_type;
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-}
-
-void ASTType::accept(Visitor* visitor)
-{
-	visitor->visit(this);
-}
-
-ASTNode* ASTType::clone()
-{
-	switch (primitive_type)
-	{
-		case PrimitiveType::T_VOID:
-		case PrimitiveType::T_BOOL:
-		case PrimitiveType::T_CHAR:
-		case PrimitiveType::T_INT:
-		case PrimitiveType::T_FLOAT:
-		{
-			return new ASTType(primitive_type);
-		}
-		case PrimitiveType::T_ARRAY:
-		{
-			return new ASTType((ASTType*)element_type->clone());
-		}
-		case PrimitiveType::T_REF:
-		{
-			return new ASTType((ASTName*)reference_name->clone());
-		}
-		default:
-		{
-			return nullptr;
-		}
-	}
-}
-
 
 
 
@@ -141,7 +68,7 @@ ASTNameQualified::~ASTNameQualified()
 
 ASTNode* ASTNameQualified::clone()
 {
-	return 
+	return
 		new ASTNameQualified
 		(
 			(ASTName*)qualifier->clone(),
@@ -183,10 +110,10 @@ ASTExpressionUnary::~ASTExpressionUnary()
 
 ASTNode* ASTExpressionUnary::clone()
 {
-	ASTExpressionUnary* node = 
+	ASTExpressionUnary* node =
 		new ASTExpressionUnary
 		(
-			op, 
+			op,
 			(ASTExpression*)expr->clone()
 		);
 	return node;

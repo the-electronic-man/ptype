@@ -1,17 +1,19 @@
-ENUM_ITEM(TYPE, "type") \
-ENUM_ITEM(NAME_SIMPLE, "name_simple") \
-ENUM_ITEM(NAME_QUALIFIED, "name_qualified") \
-ENUM_ITEM(EXPR_GROUP, "expr_group") \
-ENUM_ITEM(EXPR_LITERAL, "expr_literal") \
-ENUM_ITEM(EXPR_UNARY, "expr_unary") \
-ENUM_ITEM(EXPR_BINARY, "expr_binary") \
-ENUM_ITEM(EXPR_CAST, "expr_cast") \
-ENUM_ITEM(EXPR_ARRAY_GET, "expr_array_get") \
-ENUM_ITEM(EXPR_ARRAY_SET, "expr_array_set") \
-ENUM_ITEM(EXPR_FIELD_GET, "expr_field_get") \
-ENUM_ITEM(EXPR_FIELD_SET, "expr_field_set") \
-ENUM_ITEM(EXPR_ASSIGN, "expr_assign") \
-ENUM_ITEM(EXPR_NAME, "expr_name") \
-ENUM_ITEM(STMT_EXPR, "stmt_expr") \
-ENUM_ITEM(STMT_BLOCK, "stmt_block") \
-ENUM_ITEM(DECL_VAR, "decl_var")
+ENUM_ITEM(TYPE_PRIMITIVE, "type-primitive") \
+ENUM_ITEM(TYPE_REFERENCE, "type-reference") \
+ENUM_ITEM(TYPE_ARRAY, "type-array") \
+ENUM_ITEM(NAME_SIMPLE, "name-simple") \
+ENUM_ITEM(NAME_QUALIFIED, "name-qualified") \
+ENUM_ITEM(EXPR_GROUP, "expr-group") \
+ENUM_ITEM(EXPR_LITERAL, "expr-literal") \
+ENUM_ITEM(EXPR_UNARY, "expr-unary") \
+ENUM_ITEM(EXPR_BINARY, "expr-binary") \
+ENUM_ITEM(EXPR_CAST, "expr-cast") \
+ENUM_ITEM(EXPR_ARRAY_GET, "expr-array_get") \
+ENUM_ITEM(EXPR_ARRAY_SET, "expr-array_set") \
+ENUM_ITEM(EXPR_FIELD_GET, "expr-field_get") \
+ENUM_ITEM(EXPR_FIELD_SET, "expr-field_set") \
+ENUM_ITEM(EXPR_ASSIGN, "expr-assign") \
+ENUM_ITEM(EXPR_NAME, "expr-name") \
+ENUM_ITEM(STMT_EXPR, "stmt-expr") \
+ENUM_ITEM(STMT_BLOCK, "stmt-block") \
+ENUM_ITEM(DECL_VAR, "decl-var")
