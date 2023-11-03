@@ -1,5 +1,6 @@
 #pragma once
 #include "ast.h"
+#include "util.h"
 
 struct SemanticAnalyzer : Visitor
 {
@@ -45,4 +46,7 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTDeclarationVariable* node) override;
 
 	void visit(ASTStatementBlock* node) override;
+
+	ASTType* resolve_un_op_primitive_type(TokenKind op, PrimitiveType primitive_type);
+	ASTType* resolve_bin_op_primitive_type(TokenKind op, PrimitiveType primitive_type);
 };
