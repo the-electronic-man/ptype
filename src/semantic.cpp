@@ -73,7 +73,10 @@ void SemanticAnalyzer::visit(ASTType* node)
 
 void SemanticAnalyzer::visit(ASTExpressionCast* node)
 {
-	
+	if (pass_type == PassType::Resolve)
+	{
+		node->expr->accept(this);
+	}
 }
 
 void SemanticAnalyzer::visit(ASTExpressionGroup* node)
@@ -143,19 +146,16 @@ void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 
 void SemanticAnalyzer::visit(ASTExpressionName* node)
 {
-	
 }
 
 void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 {
 	if (pass_type == SemanticAnalyzer::PassType::Declare)
 	{
-		SymbolVariable* var_symbol = 
-			new SymbolVariable
-			(
-				node->name, 
-				(ASTType*)node->type->clone()
-			);
+		SymbolVariable* var_symbol =
+			new SymbolVariable(
+				node->name,
+				(ASTType*)node->type->clone());
 		var_symbol->index = crt_scope->var_index;
 		crt_scope->var_index++;
 		crt_scope->AddSymbol(var_symbol, node->name.buffer);
@@ -179,5 +179,4 @@ void SemanticAnalyzer::visit(ASTStatementBlock* node)
 	{
 		node->statements[i]->accept(this);
 	}
-
 }

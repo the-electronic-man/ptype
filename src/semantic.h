@@ -11,7 +11,6 @@ struct SemanticAnalyzer : Visitor
 
 	PassType pass_type;
 
-
 	SymbolNamespace* global_scope = nullptr;
 	Scope* crt_scope = nullptr;
 
