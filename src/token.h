@@ -84,3 +84,5 @@ struct Token
 	Token(TokenKind kind, char* buffer, size_t buffer_length);
 	Token(TokenKind kind, std::string str);
 };
+
+typedef size_t token_index_t;

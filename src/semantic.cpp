@@ -6,6 +6,8 @@ void SemanticAnalyzer::process(ASTNode* node)
 	node->accept(this);
 	pass_type = PassType::Resolve;
 	node->accept(this);
+
+	ast_node an;
 }
 
 void SemanticAnalyzer::visit(ASTNameSimple* node)
@@ -68,15 +70,15 @@ void SemanticAnalyzer::visit(ASTTypeArray* node)
 void SemanticAnalyzer::visit(ASTExpressionCast* node)
 {
 	// resolve the expression that is being cast
-	node->expr->accept(this);
+	node->get_expr()->accept(this);
 
 	// the cast node type is already set
 }
 
 void SemanticAnalyzer::visit(ASTExpressionGroup* node)
 {
-	node->expr->accept(this);
-	node->type = (ASTType*)node->expr->type->clone();
+	node->get_expr()->accept(this);
+	node->type = (ASTType*)node->get_expr()->type->clone();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionLiteral* node)
@@ -166,28 +168,28 @@ ASTType* SemanticAnalyzer::resolve_un_op_primitive_type(TokenKind op, PrimitiveT
 
 void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 {
-	node->expr->accept(this);
+	node->get_expr()->accept(this);
 
-	if (node->expr->type->kind == NodeKind::TYPE_PRIMITIVE)
+	if (node->get_expr()->type->kind == NodeKind::TYPE_PRIMITIVE)
 	{
 		node->type =
 			resolve_un_op_primitive_type
 			(
 				node->op.kind,
-				((ASTTypePrimitive*)node->expr->type)->primitive_type
+				((ASTTypePrimitive*)node->get_expr()->type)->primitive_type
 			);
 	}
 	else
 	{
 
 	}
-	node->type = (ASTType*)node->expr->type->clone();
+	node->type = (ASTType*)node->get_expr()->type->clone();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 {
-	node->left->accept(this);
-	node->right->accept(this);
+	node->get_left()->accept(this);
+	node->get_right()->accept(this);
 
 	switch (node->op.kind)
 	{
@@ -205,16 +207,14 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 			break;
 		}
 	}
-
-	node->type = (ASTType*)node->left->type->clone();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 {
 	if (pass_type == PassType::Resolve)
 	{
-		node->assignee->accept(this);
-		node->expr->accept(this);
+		node->get_assignee()->accept(this);
+		node->get_expr()->accept(this);
 		// insert a cast node if needed
 
 		// the node's type will always be the assignee's type
@@ -230,19 +230,19 @@ void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 {
 	if (pass_type == PassType::Declare)
 	{
-		SymbolVariable* var_symbol =
+		SymbolVariable* symbol =
 			new SymbolVariable(
-				node->name,
-				(ASTType*)node->type->clone());
-		var_symbol->index = crt_scope->var_index;
+				node->get_name()->token,
+				(ASTType*)node->get_type()->clone());
+		symbol->index = crt_scope->var_index;
 		crt_scope->var_index++;
-		crt_scope->AddSymbol(var_symbol, node->name.buffer);
-		node->var_symbol = var_symbol;
+		crt_scope->AddSymbol(symbol, node->get_name()->token.buffer);
+		node->get_name()->symbol = symbol;
 	}
 	else
 	{
-		node->expr->accept(this);
-		node->type = (ASTType*)node->expr->type->clone();
+		node->get_expr()->accept(this);
+		node->deduce_type_from_expr();
 	}
 }
 
@@ -253,8 +253,8 @@ void SemanticAnalyzer::visit(ASTStatementBlock* node)
 		node->scope = new Scope(Scope::ScopeKind::BLOCK);
 	}
 
-	for (size_t i = 0; i < node->statements.size(); i++)
+	for (size_t i = 0; i < node->get_children_count(); i++)
 	{
-		node->statements[i]->accept(this);
+		node->get_stmt(i)->accept(this);
 	}
 }

@@ -303,6 +303,6 @@ ASTDeclaration* Parser::parse_decl_var()
 		}
 	}
 
-	ASTDeclaration* node = new ASTDeclarationVariable(var_name, type, expr);
+	ASTDeclaration* node = new ASTDeclarationVariable(new ASTNameSimple(var_name), type, expr);
 	return node;
 }
