@@ -14,6 +14,7 @@ ENUM_ITEM(EXPR_FIELD_GET, "expr-field_get") \
 ENUM_ITEM(EXPR_FIELD_SET, "expr-field_set") \
 ENUM_ITEM(EXPR_ASSIGN, "expr-assign") \
 ENUM_ITEM(EXPR_NAME, "expr-name") \
+ENUM_ITEM(EXPR_CALL, "expr-call") \
 ENUM_ITEM(STMT_EXPR, "stmt-expr") \
 ENUM_ITEM(STMT_BLOCK, "stmt-block") \
 ENUM_ITEM(DECL_VAR, "decl-var")

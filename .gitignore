@@ -11,7 +11,9 @@
 *.sln.docstates
 *.xml
 .vscode
-build
+/build
+/build_vc
+*.natvis
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)

@@ -35,6 +35,7 @@ struct ASTExpressionUnary;
 struct ASTExpressionBinary;
 struct ASTExpressionAssign;
 struct ASTExpressionName;
+struct ASTExpressionCall;
 struct ASTExpressionFieldGet;
 struct ASTExpressionFieldSet;
 struct ASTExpressionArrayGet;
@@ -63,6 +64,7 @@ struct Visitor
 	virtual void visit(ASTExpressionBinary* node) {}
 	virtual void visit(ASTExpressionAssign* node) {}
 	virtual void visit(ASTExpressionName* node) {}
+	virtual void visit(ASTExpressionCall* node) {}
 	virtual void visit(ASTExpressionFieldGet* node) {}
 	virtual void visit(ASTExpressionFieldSet* node) {}
 	virtual void visit(ASTExpressionArrayGet* node) {}
@@ -87,25 +89,24 @@ public:
 	ASTNode* parent = nullptr;
 	std::vector<ASTNode*> children;
 
-	void AttachChild(ASTNode* child)
+	void attach_child(ASTNode* child)
 	{
-		assert(child);
-
-		// should we also check if it's duplicate?
-		assert(FindChildIndex(child) == children.end());
-
-		children.push_back(child);
-		child->parent = this;
+		if (!child)
+		{
+			children.push_back(nullptr);
+			return;
+		}
+		else
+		{
+			assert(find_child(child) == children.end());
+			children.push_back(child);
+			child->parent = this;
+		}
 	}
 
-	void AttachNullChild()
+	void detach_child(ASTNode* child)
 	{
-		children.push_back(nullptr);
-	}
-
-	void DetachChild(ASTNode* child)
-	{
-		auto it = FindChildIndex(child);
+		auto it = find_child(child);
 		if (it != children.end())
 		{
 			children.erase(it);
@@ -114,7 +115,7 @@ public:
 		assert(false);
 	}
 
-	std::vector<ASTNode*>::iterator FindChildIndex(ASTNode* child)
+	std::vector<ASTNode*>::iterator find_child(ASTNode* child)
 	{
 		return std::find(children.begin(), children.end(), child);
 	}
@@ -134,7 +135,7 @@ public:
 		ASTNode* node = new ASTNode(kind);
 		for (size_t i = 0; i < children.size(); i++)
 		{
-			node->AttachChild(children[i]->clone());
+			node->attach_child(children[i]->clone());
 		}
 		return node;
 	}
@@ -142,6 +143,13 @@ public:
 	size_t get_children_count()
 	{
 		return children.size();
+	}
+
+	void replace_child(ASTNode* old_child, ASTNode* new_child)
+	{
+		auto it = find_child(old_child);
+		assert(it != children.end());
+		*it = new_child;
 	}
 };
 
@@ -161,7 +169,7 @@ struct ASTDeclaration : ASTStatement
 {
 	ASTDeclaration(ASTNameSimple* name, NodeKind kind) : ASTStatement(kind)
 	{
-		AttachChild((ASTNode*)name);
+		attach_child((ASTNode*)name);
 	}
 	virtual ~ASTDeclaration() override {}
 	virtual void accept(Visitor* visitor) override = 0;
@@ -211,7 +219,7 @@ struct ASTTypeReference : ASTType
 {
 	ASTTypeReference(ASTName* name) : ASTType(NodeKind::TYPE_REFERENCE)
 	{
-		AttachChild((ASTNode*)name);
+		attach_child((ASTNode*)name);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -227,7 +235,7 @@ struct ASTTypeArray : ASTType
 {
 	ASTTypeArray(ASTType* subtype) : ASTType(NodeKind::TYPE_ARRAY)
 	{
-		AttachChild(subtype);
+		attach_child(subtype);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -270,8 +278,8 @@ struct ASTNameQualified : ASTName
 {
 	ASTNameQualified(ASTName* qualifier, ASTNameSimple* name) : ASTName(NodeKind::NAME_QUALIFIED)
 	{
-		AttachChild(qualifier);
-		AttachChild(name);
+		attach_child(qualifier);
+		attach_child(name);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -332,7 +340,7 @@ struct ASTExpressionUnary : ASTExpression
 	ASTExpressionUnary(Token op, ASTExpression* expr) : ASTExpression(NodeKind::EXPR_UNARY)
 	{
 		this->op = op;
-		AttachChild(expr);
+		attach_child(expr);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -357,8 +365,8 @@ struct ASTExpressionBinary : ASTExpression
 		: ASTExpression(NodeKind::EXPR_BINARY)
 	{
 		this->op = op;
-		AttachChild(left);
-		AttachChild(right);
+		attach_child(left);
+		attach_child(right);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -385,8 +393,8 @@ struct ASTExpressionFieldGet : ASTExpression
 	ASTExpressionFieldGet(ASTExpression* expr, ASTNameSimple* field)
 		: ASTExpression(NodeKind::EXPR_FIELD_GET)
 	{
-		AttachChild(expr);
-		AttachChild(field);
+		attach_child(expr);
+		attach_child(field);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -407,9 +415,9 @@ struct ASTExpressionFieldSet : ASTExpression
 	ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value)
 		: ASTExpression(NodeKind::EXPR_FIELD_SET)
 	{
-		AttachChild(expr);
-		AttachChild(field);
-		AttachChild(value);
+		attach_child(expr);
+		attach_child(field);
+		attach_child(value);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -434,8 +442,8 @@ struct ASTExpressionArrayGet : ASTExpression
 	ASTExpressionArrayGet(ASTExpression* expr, ASTNameSimple* index)
 		: ASTExpression(NodeKind::EXPR_ARRAY_GET)
 	{
-		AttachChild(expr);
-		AttachChild(index);
+		attach_child(expr);
+		attach_child(index);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -456,9 +464,9 @@ struct ASTExpressionArraySet : ASTExpression
 	ASTExpressionArraySet(ASTExpression* expr, ASTNameSimple* index, ASTNameSimple* value)
 		: ASTExpression(NodeKind::EXPR_ARRAY_SET)
 	{
-		AttachChild(expr);
-		AttachChild(index);
-		AttachChild(value);
+		attach_child(expr);
+		attach_child(index);
+		attach_child(value);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -482,7 +490,7 @@ struct ASTExpressionGroup : ASTExpression
 {
 	ASTExpressionGroup(ASTExpression* expr) : ASTExpression(NodeKind::EXPR_GROUP)
 	{
-		AttachChild(expr);
+		attach_child(expr);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -499,7 +507,7 @@ struct ASTExpressionCast : ASTExpression
 	ASTExpressionCast(ASTExpression* expr, ASTType* type)
 		: ASTExpression(NodeKind::EXPR_CAST)
 	{
-		AttachChild(expr);
+		attach_child(expr);
 
 		this->type = type;
 	}
@@ -518,8 +526,8 @@ struct ASTExpressionAssign : ASTExpression
 	ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr)
 		: ASTExpression(NodeKind::EXPR_ASSIGN)
 	{
-		AttachChild(assignee);
-		AttachChild(expr);
+		attach_child(assignee);
+		attach_child(expr);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -541,7 +549,7 @@ struct ASTExpressionName : ASTExpression
 {
 	ASTExpressionName(ASTName* name) : ASTExpression(NodeKind::EXPR_NAME)
 	{
-		AttachChild(name);
+		attach_child(name);
 	}
 	void accept(Visitor* visitor) override
 	{
@@ -562,16 +570,10 @@ struct ASTDeclarationVariable : ASTDeclaration
 	ASTDeclarationVariable(ASTNameSimple* name, ASTType* type, ASTExpression* expr)
 		: ASTDeclaration(name, NodeKind::DECL_VAR)
 	{
-		if (type)
-		{
-			AttachChild(type);
-		}
-		else
-		{
-			AttachNullChild();
-		}
-		AttachChild(expr);
+		attach_child(type);
+		attach_child(expr);
 	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
@@ -609,7 +611,7 @@ struct ASTStatementBlock : ASTStatement
 	{
 		for (size_t i = 0; i < children.size(); i++)
 		{
-			AttachChild(statements[i]);
+			attach_child(statements[i]);
 		}
 	}
 	void accept(Visitor* visitor) override
@@ -626,7 +628,7 @@ struct ASTStatementExpression : ASTStatement
 {
 	ASTStatementExpression(ASTExpression* expr) : ASTStatement(NodeKind::STMT_EXPR)
 	{
-		AttachChild(expr);
+		attach_child(expr);
 	}
 	void accept(Visitor* visitor) override
 	{

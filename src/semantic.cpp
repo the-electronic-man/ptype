@@ -6,8 +6,6 @@ void SemanticAnalyzer::process(ASTNode* node)
 	node->accept(this);
 	pass_type = PassType::Resolve;
 	node->accept(this);
-
-	ast_node an;
 }
 
 void SemanticAnalyzer::visit(ASTNameSimple* node)

@@ -306,3 +306,11 @@ ASTDeclaration* Parser::parse_decl_var()
 	ASTDeclaration* node = new ASTDeclarationVariable(new ASTNameSimple(var_name), type, expr);
 	return node;
 }
+
+ASTDeclaration* Parser::parse_decl_param()
+{
+	Token var_name = expect(TokenKind::IDENTIFIER, "expected variable name");
+	(void)expect(TokenKind::COLON, "expected ':' after parameter name");
+	ASTType* type = parse_type();
+	return nullptr;
+}

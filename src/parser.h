@@ -33,6 +33,7 @@ struct Parser
 	ASTExpression* parse_expr_logic_and();
 	ASTExpression* parse_expr_logic_or();
 	ASTExpression* parse_expr_assignment();
+	ASTExpression* parse_expr_call();
 	ASTExpression* parse_expr();
 
 	ASTStatement* parse_stmt();
@@ -40,4 +41,5 @@ struct Parser
 	ASTStatement* parse_stmt_block();
 
 	ASTDeclaration* parse_decl_var();
+	ASTDeclaration* parse_decl_param();
 };
