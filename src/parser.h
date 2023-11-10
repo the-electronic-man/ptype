@@ -20,7 +20,6 @@ struct Parser
 
 	ASTExpression* parse_expr_primary();
 	ASTExpression* parse_expr_postfix();
-	ASTExpression* parse_expr_cast();
 	ASTExpression* parse_expr_unary();
 	ASTExpression* parse_expr_factor();
 	ASTExpression* parse_expr_term();

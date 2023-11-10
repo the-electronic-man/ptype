@@ -21,9 +21,12 @@ const char* node_kind_to_string(NodeKind kind);
 
 struct ASTNode;
 
+struct ASTName;
+struct ASTNameGlobal;
 struct ASTNameSimple;
 struct ASTNameQualified;
 
+struct ASTType;
 struct ASTTypePrimitive;
 struct ASTTypeReference;
 struct ASTTypeArray;
@@ -50,6 +53,7 @@ struct Visitor
 {
 	virtual void process(ASTNode* node) {}
 
+	virtual void visit(ASTNameGlobal* node) {}
 	virtual void visit(ASTNameSimple* node) {}
 	virtual void visit(ASTNameQualified* node) {}
 
@@ -79,116 +83,38 @@ struct Symbol;
 
 struct ASTNode
 {
-protected:
-
-	ASTNode(NodeKind kind) { this->kind = kind; }
-
-public:
-
 	NodeKind kind;
 	ASTNode* parent = nullptr;
-	std::vector<ASTNode*> children;
-
-	void attach_child(ASTNode* child)
-	{
-		if (!child)
-		{
-			children.push_back(nullptr);
-			return;
-		}
-		else
-		{
-			assert(find_child(child) == children.end());
-			children.push_back(child);
-			child->parent = this;
-		}
-	}
-
-	void detach_child(ASTNode* child)
-	{
-		auto it = find_child(child);
-		if (it != children.end())
-		{
-			children.erase(it);
-			return;
-		}
-		assert(false);
-	}
-
-	std::vector<ASTNode*>::iterator find_child(ASTNode* child)
-	{
-		return std::find(children.begin(), children.end(), child);
-	}
-
-	virtual ~ASTNode()
-	{
-		for (size_t i = 0; i < children.size(); i++)
-		{
-			delete children[i];
-		}
-	}
-
-	virtual void accept(Visitor* visitor) {}
-
-	virtual ASTNode* clone()
-	{
-		ASTNode* node = new ASTNode(kind);
-		for (size_t i = 0; i < children.size(); i++)
-		{
-			node->attach_child(children[i]->clone());
-		}
-		return node;
-	}
-
-	size_t get_children_count()
-	{
-		return children.size();
-	}
-
-	void replace_child(ASTNode* old_child, ASTNode* new_child)
-	{
-		auto it = find_child(old_child);
-		assert(it != children.end());
-		*it = new_child;
-	}
+	ASTNode(NodeKind kind) { this->kind = kind; }
+	virtual ~ASTNode() {}
+	virtual void accept(Visitor* visitor) = 0;
+	virtual ASTNode* clone() = 0;
 };
 
 struct ASTStatement : ASTNode
 {
 	ASTStatement(NodeKind kind) : ASTNode(kind) {}
-	virtual ~ASTStatement() override {}
-	virtual void accept(Visitor* visitor) override = 0;
 };
 
-struct ASTName;
-struct ASTNameSimple;
-struct ASTNameQualified;
-struct ASTType;
 
 struct ASTDeclaration : ASTStatement
 {
-	ASTDeclaration(ASTNameSimple* name, NodeKind kind) : ASTStatement(kind)
+	Token name;
+	Symbol* symbol = nullptr;
+
+	ASTDeclaration(Token name, NodeKind kind) : ASTStatement(kind)
 	{
-		attach_child((ASTNode*)name);
-	}
-	virtual ~ASTDeclaration() override {}
-	virtual void accept(Visitor* visitor) override = 0;
-	virtual ASTNode* clone() override
-	{
-		return ASTStatement::clone();
-	}
-	ASTNameSimple* get_name()
-	{
-		return (ASTNameSimple*)children[0];
+		this->name = name;
 	}
 };
 
 struct ASTType : ASTNode
 {
 	ASTType(NodeKind kind) : ASTNode(kind) {}
-	virtual ~ASTType() override {}
-	virtual void accept(Visitor* visitor) override = 0;
-	virtual ASTNode* clone() override { return ASTNode::clone(); }
+	virtual bool is_equal(ASTType* other)
+	{
+		return kind == other->kind;
+	}
 };
 
 struct ASTTypePrimitive : ASTType
@@ -199,51 +125,51 @@ struct ASTTypePrimitive : ASTType
 	{
 		this->primitive_type = primitive_type;
 	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
+
 	ASTNode* clone() override
 	{
-		ASTTypePrimitive* node = (ASTTypePrimitive*)ASTType::clone();
-		node->primitive_type = primitive_type;
+		ASTTypePrimitive* node = new ASTTypePrimitive(primitive_type);
 		return node;
 	}
-	PrimitiveType get_name()
-	{
-		return primitive_type;
-	}
-};
 
-struct ASTTypeReference : ASTType
-{
-	ASTTypeReference(ASTName* name) : ASTType(NodeKind::TYPE_REFERENCE)
+	virtual bool is_equal(ASTType* other)
 	{
-		attach_child((ASTNode*)name);
-	}
-	void accept(Visitor* visitor) override
-	{
-		visitor->visit(this);
-	}
-	ASTName* get_name()
-	{
-		return (ASTName*)children[0];
+		return
+			ASTType::is_equal(other) &&
+			primitive_type == ((ASTTypePrimitive*)other)->primitive_type;
 	}
 };
 
 struct ASTTypeArray : ASTType
 {
+	ASTType* subtype = nullptr;
+
 	ASTTypeArray(ASTType* subtype) : ASTType(NodeKind::TYPE_ARRAY)
 	{
-		attach_child(subtype);
+		this->subtype = subtype;
+		subtype->parent = this;
 	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTType* get_subtype()
+
+	ASTNode* clone() override
 	{
-		return (ASTType*)children[0];
+		ASTTypeArray* node =
+			new ASTTypeArray((ASTType*)subtype->clone());
+		return node;
+	}
+
+	virtual bool is_equal(ASTType* other) override
+	{
+		return false;
 	}
 };
 
@@ -251,65 +177,133 @@ struct ASTName : ASTNode
 {
 	Symbol* symbol = nullptr;
 	ASTName(NodeKind kind) : ASTNode(kind) {}
-	virtual void accept(Visitor* visitor) override = 0;
-	virtual ASTNode* clone() override { return ASTNode::clone(); }
+};
+
+
+struct ASTTypeReference : ASTType
+{
+	ASTName* name = nullptr;
+
+	ASTTypeReference(ASTName* name) : ASTType(NodeKind::TYPE_REFERENCE)
+	{
+		this->name = name;
+		name->parent = this;
+	}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone() override
+	{
+		ASTTypeReference* node =
+			new ASTTypeReference((ASTName*)name->clone());
+		return node;
+	}
+
+	virtual bool is_equal(ASTType* other) override
+	{
+		return false;
+	}
+};
+
+struct ASTNameGlobal : ASTName
+{
+	ASTNameGlobal() : ASTName(NodeKind::NAME_GLOBAL) {}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone() override
+	{
+		ASTNameGlobal* node = (ASTNameGlobal*)ASTName::clone();
+		return node;
+	}
 };
 
 struct ASTNameSimple : ASTName
 {
 	Token token;
+
 	ASTNameSimple(Token token) : ASTName(NodeKind::NAME_SIMPLE)
 	{
 		this->token = token;
 	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTNode* clone() override
+
+	ASTNode* clone()
 	{
-		ASTNameSimple* node = (ASTNameSimple*)ASTName::clone();
-		node->token = token;
+		ASTNameSimple* node =
+			new ASTNameSimple
+			(
+				token
+			);
 		return node;
 	}
 };
 
 struct ASTNameQualified : ASTName
 {
+	ASTName* qualifier = nullptr;
+	ASTNameSimple* name = nullptr;
+
 	ASTNameQualified(ASTName* qualifier, ASTNameSimple* name) : ASTName(NodeKind::NAME_QUALIFIED)
 	{
-		attach_child(qualifier);
-		attach_child(name);
+		this->qualifier = qualifier;
+		qualifier->parent = this;
+		this->name = name;
+		name->parent = this;
 	}
+
+	~ASTNameQualified()
+	{
+
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTName* get_qualifier()
+
+	ASTNode* clone()
 	{
-		return (ASTName*)children[0];
-	}
-	ASTNameSimple* get_name()
-	{
-		return (ASTNameSimple*)children[1];
+		ASTNameQualified* node =
+			new ASTNameQualified
+			(
+				(ASTName*)qualifier->clone(),
+				(ASTNameSimple*)name->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpression : ASTNode
 {
 	ASTType* type = nullptr;
-	ASTExpression(NodeKind kind) : ASTNode(kind)
-	{
 
-	}
-	virtual ~ASTExpression() override
+	ASTExpression(NodeKind kind) : ASTNode(kind) {}
+
+	~ASTExpression() override
 	{
-		delete type;
+		if (type)
+		{
+			delete type;
+		}
 	}
+
 	virtual void accept(Visitor* visitor) override = 0;
-	bool is_type_resolved()
+
+	void resolve_type(ASTType* type)
 	{
-		return type != nullptr;
+		this->type = type;
+		type->parent = this;
 	}
 };
 
@@ -322,14 +316,15 @@ struct ASTExpressionLiteral : ASTExpression
 	{
 		this->token = token;
 	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
+
 	ASTNode* clone()
 	{
-		ASTExpressionLiteral* node = (ASTExpressionLiteral*)ASTExpression::clone();
-		node->token = token;
+		ASTExpressionLiteral* node = new ASTExpressionLiteral(token);
 		return node;
 	}
 };
@@ -337,209 +332,345 @@ struct ASTExpressionLiteral : ASTExpression
 struct ASTExpressionUnary : ASTExpression
 {
 	Token op;
+	ASTExpression* expr = nullptr;
+
 	ASTExpressionUnary(Token op, ASTExpression* expr) : ASTExpression(NodeKind::EXPR_UNARY)
 	{
 		this->op = op;
-		attach_child(expr);
+
+		this->expr = expr;
+		expr->parent = this;
 	}
+
+	~ASTExpressionUnary()
+	{
+		delete expr;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
+
 	ASTNode* clone()
 	{
-		ASTExpressionUnary* node = (ASTExpressionUnary*)ASTExpression::clone();
-		node->op = op;
+		ASTExpressionUnary* node = new ASTExpressionUnary(op, (ASTExpression*)expr->clone());
 		return node;
-	}
-	ASTExpression* get_expr()
-	{
-		return (ASTExpression*)children[0];
 	}
 };
 
 struct ASTExpressionBinary : ASTExpression
 {
 	Token op;
+	ASTExpression* left = nullptr;
+	ASTExpression* right = nullptr;
 	ASTExpressionBinary(Token op, ASTExpression* left, ASTExpression* right)
 		: ASTExpression(NodeKind::EXPR_BINARY)
 	{
 		this->op = op;
-		attach_child(left);
-		attach_child(right);
+
+		this->left = left;
+		left->parent = this;
+
+		this->right = right;
+		right->parent = this;
 	}
+
+	~ASTExpressionBinary()
+	{
+		delete left;
+		delete right;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
+
 	ASTNode* clone()
 	{
-		ASTExpressionBinary* node = (ASTExpressionBinary*)ASTExpression::clone();
+		ASTExpressionBinary* node =
+			new ASTExpressionBinary
+			(
+				op,
+				(ASTExpression*)left->clone(),
+				(ASTExpression*)right->clone()
+			);
 		node->op = op;
 		return node;
-	}
-	ASTExpression* get_left()
-	{
-		return (ASTExpression*)children[0];
-	}
-	ASTExpression* get_right()
-	{
-		return (ASTExpression*)children[1];
 	}
 };
 
 struct ASTExpressionFieldGet : ASTExpression
 {
+	ASTExpression* expr = nullptr;
+	ASTNameSimple* field = nullptr;
+
 	ASTExpressionFieldGet(ASTExpression* expr, ASTNameSimple* field)
 		: ASTExpression(NodeKind::EXPR_FIELD_GET)
 	{
-		attach_child(expr);
-		attach_child(field);
+		this->expr = expr;
+		expr->parent = this;
+
+		this->field = field;
+		field->parent = this;
 	}
+
+	~ASTExpressionFieldGet()
+	{
+		delete expr;
+		delete field;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
-	}
-	ASTExpression* get_field()
-	{
-		return (ASTExpression*)children[1];
+		ASTExpressionFieldGet* node =
+			new ASTExpressionFieldGet
+			(
+				(ASTExpression*)expr->clone(),
+				(ASTNameSimple*)field->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpressionFieldSet : ASTExpression
 {
+	ASTExpression* expr = nullptr;
+	ASTNameSimple* field = nullptr;
+	ASTExpression* value = nullptr;
+
 	ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value)
 		: ASTExpression(NodeKind::EXPR_FIELD_SET)
 	{
-		attach_child(expr);
-		attach_child(field);
-		attach_child(value);
+		this->expr = expr;
+		expr->parent = this;
+
+		this->field = field;
+		field->parent = this;
+
+		this->value = value;
+		value->parent = this;
 	}
+
+	~ASTExpressionFieldSet()
+	{
+		delete expr;
+		delete field;
+		delete value;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
-	}
-	ASTNameSimple* get_field()
-	{
-		return (ASTNameSimple*)children[1];
-	}
-	ASTExpression* get_value()
-	{
-		return (ASTExpression*)children[2];
+		ASTExpressionFieldSet* node =
+			new ASTExpressionFieldSet
+			(
+				(ASTExpression*)expr->clone(),
+				(ASTNameSimple*)field->clone(),
+				(ASTExpression*)value->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpressionArrayGet : ASTExpression
 {
-	ASTExpressionArrayGet(ASTExpression* expr, ASTNameSimple* index)
+	ASTExpression* expr = nullptr;
+	ASTExpression* index = nullptr;
+
+	ASTExpressionArrayGet(ASTExpression* expr, ASTExpression* index)
 		: ASTExpression(NodeKind::EXPR_ARRAY_GET)
 	{
-		attach_child(expr);
-		attach_child(index);
+		this->expr = expr;
+		expr->parent = this;
+
+		this->index = index;
+		index->parent = this;
 	}
+
+	~ASTExpressionArrayGet()
+	{
+		delete expr;
+		delete index;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
+		ASTExpressionArrayGet* node =
+			new ASTExpressionArrayGet
+			(
+				(ASTExpression*)expr->clone(),
+				(ASTExpression*)index->clone()
+			);
+		return node;
 	}
-	ASTExpression* get_index()
-	{
-		return (ASTExpression*)children[1];
-	}
+
 };
 
 struct ASTExpressionArraySet : ASTExpression
 {
-	ASTExpressionArraySet(ASTExpression* expr, ASTNameSimple* index, ASTNameSimple* value)
+	ASTExpression* expr = nullptr;
+	ASTExpression* index = nullptr;
+	ASTExpression* value = nullptr;
+
+	ASTExpressionArraySet(ASTExpression* expr, ASTExpression* index, ASTExpression* value)
 		: ASTExpression(NodeKind::EXPR_ARRAY_SET)
 	{
-		attach_child(expr);
-		attach_child(index);
-		attach_child(value);
+		this->expr = expr;
+		expr->parent = this;
+
+		this->index = index;
+		index->parent = this;
+
+		this->value = value;
+		value->parent = this;
 	}
+
+	~ASTExpressionArraySet()
+	{
+		delete expr;
+		delete index;
+		delete value;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
-	}
-	ASTExpression* get_index()
-	{
-		return (ASTExpression*)children[1];
-	}
-	ASTExpression* get_value()
-	{
-		return (ASTExpression*)children[2];
+		ASTExpressionArraySet* node =
+			new ASTExpressionArraySet
+			(
+				(ASTExpression*)expr->clone(),
+				(ASTExpression*)index->clone(),
+				(ASTExpression*)value->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpressionGroup : ASTExpression
 {
+	ASTExpression* expr = nullptr;
+
 	ASTExpressionGroup(ASTExpression* expr) : ASTExpression(NodeKind::EXPR_GROUP)
 	{
-		attach_child(expr);
+		this->expr = expr;
+		expr->parent = this;
 	}
+
+	~ASTExpressionGroup()
+	{
+		delete expr;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
+		ASTExpressionGroup* node =
+			new ASTExpressionGroup
+			(
+				(ASTExpression*)expr->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpressionCast : ASTExpression
 {
+	ASTExpression* expr = nullptr;
+
 	ASTExpressionCast(ASTExpression* expr, ASTType* type)
 		: ASTExpression(NodeKind::EXPR_CAST)
 	{
-		attach_child(expr);
+		this->expr = expr;
+		expr->parent = this;
 
 		this->type = type;
+		type->parent = this;
 	}
+
+	~ASTExpressionCast()
+	{
+		delete expr;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
+		ASTExpressionCast* node =
+			new ASTExpressionCast
+			(
+				(ASTExpression*)expr->clone(),
+				(ASTType*)type->clone()
+			);
+		return node;
 	}
 };
 
 struct ASTExpressionAssign : ASTExpression
 {
+	ASTExpression* assignee = nullptr;
+	ASTExpression* expr = nullptr;
+
 	ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr)
 		: ASTExpression(NodeKind::EXPR_ASSIGN)
 	{
-		attach_child(assignee);
-		attach_child(expr);
+		this->assignee = assignee;
+		assignee->parent = this;
+
+		this->expr = expr;
+		expr->parent = this;
 	}
+
+	~ASTExpressionAssign()
+	{
+		delete assignee;
+		if (expr)
+		{
+			delete expr;
+		}
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_assignee()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
-	}
-	ASTExpression* get_expr()
-	{
-		return (ASTExpression*)children[1];
+		ASTExpressionAssign* node =
+			new ASTExpressionAssign
+			(
+				(ASTExpression*)assignee->clone(),
+				(ASTExpression*)expr->clone()
+			);
+		return node;
 	}
 };
 
@@ -547,31 +678,59 @@ struct Symbol;
 
 struct ASTExpressionName : ASTExpression
 {
+	ASTName* name = nullptr;
+
 	ASTExpressionName(ASTName* name) : ASTExpression(NodeKind::EXPR_NAME)
 	{
-		attach_child(name);
+		this->name = name;
+		name->parent = this;
 	}
+
+	~ASTExpressionName()
+	{
+		delete name;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTName* get_name()
+
+	ASTNode* clone()
 	{
-		return (ASTName*)children[0];
+		ASTExpressionName* node =
+			new ASTExpressionName
+			(
+				(ASTName*)name->clone()
+			);
+		return node;
 	}
 };
 
 
 
-struct SymbolVariable;
-
 struct ASTDeclarationVariable : ASTDeclaration
 {
-	ASTDeclarationVariable(ASTNameSimple* name, ASTType* type, ASTExpression* expr)
+	Token name;
+	ASTType* type = nullptr;
+	ASTExpression* expr = nullptr;
+
+	ASTDeclarationVariable(Token name, ASTType* type, ASTExpression* expr)
 		: ASTDeclaration(name, NodeKind::DECL_VAR)
 	{
-		attach_child(type);
-		attach_child(expr);
+		this->name = name;
+
+		this->type = type;
+		type->parent = this;
+
+		this->expr = expr;
+		expr->parent = this;
+	}
+
+	~ASTDeclarationVariable()
+	{
+		delete type;
+		delete expr;
 	}
 
 	void accept(Visitor* visitor) override
@@ -579,21 +738,16 @@ struct ASTDeclarationVariable : ASTDeclaration
 		visitor->visit(this);
 	}
 
-	void deduce_type_from_expr()
+	ASTNode* clone()
 	{
-		if (!children[1])
-		{
-			children[1] = get_expr()->type->clone();
-		}
-	}
-
-	ASTType* get_type()
-	{
-		return (ASTType*)children[1];
-	}
-	ASTExpression* get_expr()
-	{
-		return (ASTExpression*)children[2];
+		ASTDeclarationVariable* node =
+			new ASTDeclarationVariable
+			(
+				name,
+				(ASTType*)type->clone(),
+				(ASTExpression*)expr->clone()
+			);
+		return node;
 	}
 };
 
@@ -605,37 +759,78 @@ struct ASTStatementBlock : ASTStatement
 {
 	Scope* scope = nullptr;
 	int32_t var_index = 0;
+	std::vector<ASTStatement*> statements;
 
 	ASTStatementBlock(std::vector<ASTStatement*>& statements)
 		: ASTStatement(NodeKind::STMT_BLOCK)
 	{
-		for (size_t i = 0; i < children.size(); i++)
+		this->statements = statements;
+		for (size_t i = 0; i < statements.size(); i++)
 		{
-			attach_child(statements[i]);
+			this->statements[i]->parent = this;
 		}
 	}
+
+	~ASTStatementBlock()
+	{
+		for (size_t i = 0; i < statements.size(); i++)
+		{
+			delete statements[i];
+		}
+
+		delete scope;
+
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_stmt(size_t index)
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[index];
+		std::vector<ASTStatement*> cloned_statements;
+		for (size_t i = 0; i < statements.size(); i++)
+		{
+			cloned_statements.push_back((ASTStatement*)statements[i]->clone());
+		}
+
+		ASTStatementBlock* node =
+			new ASTStatementBlock
+			(
+				cloned_statements
+			);
+		return node;
 	}
 };
 
 struct ASTStatementExpression : ASTStatement
 {
+	ASTExpression* expr = nullptr;
+
 	ASTStatementExpression(ASTExpression* expr) : ASTStatement(NodeKind::STMT_EXPR)
 	{
-		attach_child(expr);
+		this->expr = expr;
+		expr->parent = this;
 	}
+
+	~ASTStatementExpression()
+	{
+		delete expr;
+	}
+
 	void accept(Visitor* visitor) override
 	{
 		visitor->visit(this);
 	}
-	ASTExpression* get_expr()
+
+	ASTNode* clone()
 	{
-		return (ASTExpression*)children[0];
+		ASTStatementExpression* node =
+			new ASTStatementExpression
+			(
+				(ASTExpression*)expr->clone()
+			);
+		return node;
 	}
 };

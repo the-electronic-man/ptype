@@ -170,16 +170,16 @@ Token Lexer::get_token_raw()
 	{
 		switch (ch)
 		{
-			pt_switch_case_whitespace:
+		pt_switch_case_whitespace:
 			{
 				advance();
 				break;
 			}
-			pt_switch_case_alpha:
+		pt_switch_case_alpha:
 			{
 				return get_identifier();
 			}
-			pt_switch_case_digit:
+		pt_switch_case_digit:
 			{
 				return get_number();
 			}
@@ -281,6 +281,16 @@ Token Lexer::get_token_raw()
 						// fallthrough
 					}
 				}
+			}
+			case '(':
+			{
+				advance();
+				return Token(TokenKind::LEFT_PAREN);
+			}
+			case ')':
+			{
+				advance();
+				return Token(TokenKind::RIGHT_PAREN);
 			}
 			case '.':
 			{

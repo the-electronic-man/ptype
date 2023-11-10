@@ -1,5 +1,2 @@
-var a : int = 100;
-var b : int = a + 200;
-a.b.c;
-var a = 5 * 3;
+var a : int = 1.2 + cast(float, 300);
 

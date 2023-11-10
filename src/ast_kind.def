@@ -1,6 +1,7 @@
 ENUM_ITEM(TYPE_PRIMITIVE, "type-primitive") \
 ENUM_ITEM(TYPE_REFERENCE, "type-reference") \
 ENUM_ITEM(TYPE_ARRAY, "type-array") \
+ENUM_ITEM(NAME_GLOBAL, "name-global") \
 ENUM_ITEM(NAME_SIMPLE, "name-simple") \
 ENUM_ITEM(NAME_QUALIFIED, "name-qualified") \
 ENUM_ITEM(EXPR_GROUP, "expr-group") \

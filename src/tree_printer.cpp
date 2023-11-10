@@ -88,8 +88,8 @@ void TreePrinter::visit(ASTNameQualified* node)
 		node_kind_to_string(node->kind),
 		{},
 		{
-			node->get_qualifier(),
-			node->get_name()
+			node->qualifier,
+			node->name
 		}
 		);
 }
@@ -120,13 +120,13 @@ void TreePrinter::visit(ASTExpressionCast* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type)
-		VISIT_CHILD(get_expr())
+		VISIT_CHILD(expr)
 	)
 }
 
 void TreePrinter::visit(ASTExpressionGroup* node)
 {
-	node->get_expr()->accept(this);
+	node->expr->accept(this);
 }
 
 void TreePrinter::visit(ASTExpressionLiteral* node)
@@ -152,7 +152,7 @@ void TreePrinter::visit(ASTExpressionUnary* node)
 			XML_ATTR("op", token_kind_to_string(node->op.kind))
 		),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_expr())
+		VISIT_CHILD(expr)
 	)
 }
 
@@ -166,8 +166,8 @@ void TreePrinter::visit(ASTExpressionBinary* node)
 			XML_ATTR("op", token_kind_to_string(node->op.kind))
 		),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_left()),
-		VISIT_CHILD(get_right())
+		VISIT_CHILD(left),
+		VISIT_CHILD(right)
 	)
 }
 void TreePrinter::visit(ASTExpressionAssign* node)
@@ -176,8 +176,8 @@ void TreePrinter::visit(ASTExpressionAssign* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_assignee()),
-		VISIT_CHILD(get_expr())
+		VISIT_CHILD(assignee),
+		VISIT_CHILD(expr)
 	)
 }
 
@@ -187,7 +187,7 @@ void TreePrinter::visit(ASTExpressionName* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_name())
+		VISIT_CHILD(name)
 	)
 }
 
@@ -197,8 +197,8 @@ void TreePrinter::visit(ASTExpressionFieldGet* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_expr()),
-		VISIT_CHILD(get_field())
+		VISIT_CHILD(expr),
+		VISIT_CHILD(field)
 	)
 }
 
@@ -208,9 +208,9 @@ void TreePrinter::visit(ASTExpressionFieldSet* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_expr()),
-		VISIT_CHILD(get_field()),
-		VISIT_CHILD(get_value())
+		VISIT_CHILD(expr),
+		VISIT_CHILD(field),
+		VISIT_CHILD(value)
 	)
 }
 
@@ -230,7 +230,7 @@ void TreePrinter::visit(ASTDeclarationVariable* node)
 	(
 		node_kind_to_string(node->kind),
 		//VISIT_CHILD(type),
-		VISIT_CHILD(get_expr())
+		VISIT_CHILD(expr)
 	)
 }
 
@@ -239,7 +239,7 @@ void TreePrinter::visit(ASTStatementExpression* node)
 	XML_PRINT_ELEMENT
 	(
 		node_kind_to_string(node->kind),
-		VISIT_CHILD(get_expr())
+		VISIT_CHILD(expr)
 	)
 }
 
@@ -248,9 +248,9 @@ void TreePrinter::visit(ASTStatementBlock* node)
 	XML_PRINT_ELEMENT
 	(
 		node_kind_to_string(node->kind),
-		for (size_t i = 0; i < node->get_children_count(); i++)
+		for (size_t i = 0; i < node->statements.size(); i++)
 		{
-			node->get_stmt(i)->accept(this);
+			node->statements[i]->accept(this);
 		}
 	)
 }

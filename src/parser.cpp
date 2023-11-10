@@ -92,30 +92,22 @@ ASTExpression* Parser::parse_expr_primary()
 			ASTExpressionName* node = new ASTExpressionName(name);
 			return node;
 		}
+		case TokenKind::KW_CAST:
+		{
+			(void)expect(TokenKind::KW_CAST);
+			(void)expect(TokenKind::LEFT_PAREN, "expected '(' for cast expression");
+			ASTType* type = parse_type();
+			(void)expect(TokenKind::COMMA, "expected ',' after type");
+			ASTExpression* expr = parse_expr();
+			(void)expect(TokenKind::RIGHT_PAREN, "expected ')' after cast expression");
+			return new ASTExpressionCast(expr, type);
+		}
 		default:
 		{
 			return nullptr;
 		}
 	}
 
-}
-
-ASTExpression* Parser::parse_expr_cast()
-{
-	if (crt_token.kind == TokenKind::KW_CAST)
-	{
-		(void)expect(TokenKind::KW_CAST);
-		(void)expect(TokenKind::LEFT_PAREN, "expected '(' for cast expression");
-		ASTType* type = parse_type();
-		(void)expect(TokenKind::COMMA, "expected ',' after type");
-		ASTExpression* expr = parse_expr();
-		(void)expect(TokenKind::RIGHT_PAREN, "expected ')' after cast expression");
-		return new ASTExpressionCast(expr, type);
-	}
-	else
-	{
-		return parse_expr_unary();
-	}
 }
 
 ASTExpression* Parser::parse_expr_postfix()
@@ -163,7 +155,7 @@ ASTExpression* Parser::parse_expr_unary()
 		case TokenKind::TILDE:
 		{
 			Token op = expect(crt_token.kind);
-			ASTExpression* expr = parse_expr_cast();
+			ASTExpression* expr = parse_expr_unary();
 			return new ASTExpressionUnary(op, expr);
 		}
 		default:
@@ -303,7 +295,7 @@ ASTDeclaration* Parser::parse_decl_var()
 		}
 	}
 
-	ASTDeclaration* node = new ASTDeclarationVariable(new ASTNameSimple(var_name), type, expr);
+	ASTDeclaration* node = new ASTDeclarationVariable(var_name, type, expr);
 	return node;
 }
 
