@@ -7,17 +7,17 @@
 #include <vector>
 #include <algorithm>
 
-
+#ifdef ENUM_ITEM
 #undef ENUM_ITEM
-#define ENUM_ITEM(name, str) \
-	name,
-
+#endif
+#define ENUM_ITEM(name, str) name,
 enum class NodeKind
 {
-#include "ast_kind.def"
+#include "ast_kind.enum"
 };
-
 const char* node_kind_to_string(NodeKind kind);
+
+
 
 struct ASTNode;
 
@@ -115,6 +115,7 @@ struct ASTType : ASTNode
 	{
 		return kind == other->kind;
 	}
+	virtual std::string to_string() = 0;
 };
 
 struct ASTTypePrimitive : ASTType
@@ -142,6 +143,11 @@ struct ASTTypePrimitive : ASTType
 		return
 			ASTType::is_equal(other) &&
 			primitive_type == ((ASTTypePrimitive*)other)->primitive_type;
+	}
+
+	std::string to_string() override
+	{
+		return primitive_type_to_string(primitive_type);
 	}
 };
 
@@ -171,12 +177,18 @@ struct ASTTypeArray : ASTType
 	{
 		return false;
 	}
+
+	std::string to_string() override
+	{
+		return subtype->to_string() + "[]";
+	}
 };
 
 struct ASTName : ASTNode
 {
 	Symbol* symbol = nullptr;
 	ASTName(NodeKind kind) : ASTNode(kind) {}
+	virtual std::string to_string() = 0;
 };
 
 
@@ -206,6 +218,11 @@ struct ASTTypeReference : ASTType
 	{
 		return false;
 	}
+
+	std::string to_string() override
+	{
+		return name->to_string() + "[]";
+	}
 };
 
 struct ASTNameGlobal : ASTName
@@ -221,6 +238,11 @@ struct ASTNameGlobal : ASTName
 	{
 		ASTNameGlobal* node = (ASTNameGlobal*)ASTName::clone();
 		return node;
+	}
+
+	std::string to_string() override
+	{
+		return "global::";
 	}
 };
 
@@ -246,6 +268,11 @@ struct ASTNameSimple : ASTName
 				token
 			);
 		return node;
+	}
+
+	std::string to_string() override
+	{
+		return token.buffer;
 	}
 };
 
@@ -281,6 +308,11 @@ struct ASTNameQualified : ASTName
 				(ASTNameSimple*)name->clone()
 			);
 		return node;
+	}
+
+	std::string to_string() override
+	{
+		return qualifier->to_string() + "::" + name->to_string();
 	}
 };
 
@@ -720,8 +752,11 @@ struct ASTDeclarationVariable : ASTDeclaration
 	{
 		this->name = name;
 
-		this->type = type;
-		type->parent = this;
+		if (type)
+		{
+			this->type = type;
+			type->parent = this;
+		}
 
 		this->expr = expr;
 		expr->parent = this;

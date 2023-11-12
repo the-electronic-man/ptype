@@ -12,22 +12,14 @@ struct TreePrinter : Visitor
 	void decrease_ident() { ident--; generate_ident_str(); }
 	void generate_ident_str() { ident_str = std::string(ident, '\t'); }
 
-	void xml_print
-	(
-		std::string name,
-		std::vector<std::pair<std::string, std::string>> attributes = {},
-		std::vector<ASTNode*> children = {},
-		std::string content = ""
-	);
-
 	void process(ASTNode* node) override;
 
-	void visit(ASTNameSimple* node) override;
-	void visit(ASTNameQualified* node) override;
+	void visit(ASTNameSimple* node) override {}
+	void visit(ASTNameQualified* node) override {}
 
-	void visit(ASTTypePrimitive* node) override;
-	void visit(ASTTypeReference* node) override;
-	void visit(ASTTypeArray* node) override;
+	void visit(ASTTypePrimitive* node) override {}
+	void visit(ASTTypeReference* node) override {}
+	void visit(ASTTypeArray* node) override {}
 
 	void visit(ASTExpressionCast* node) override;
 	void visit(ASTExpressionGroup* node) override;

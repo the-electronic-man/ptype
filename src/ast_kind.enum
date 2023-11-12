@@ -18,4 +18,4 @@ ENUM_ITEM(EXPR_NAME, "expr-name") \
 ENUM_ITEM(EXPR_CALL, "expr-call") \
 ENUM_ITEM(STMT_EXPR, "stmt-expr") \
 ENUM_ITEM(STMT_BLOCK, "stmt-block") \
-ENUM_ITEM(DECL_VAR, "decl-var")
+ENUM_ITEM(DECL_VAR, "decl-var") \

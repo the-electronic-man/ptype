@@ -1,5 +1,20 @@
 #include "token.h"
 
+#ifdef ENUM_ITEM
+#undef ENUM_ITEM
+#endif
+
+#define ENUM_ITEM(name) \
+	case TokenKind::name: return #name;
+
+const char* token_kind_to_string(TokenKind kind)
+{
+	switch (kind)
+	{
+#include "token_kind.enum"
+		default: return "undefined";
+	}
+}
 
 Token::Token()
 {
