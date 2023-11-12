@@ -33,11 +33,9 @@ struct Compiler : Visitor
 
 	void emit_arith_bin_op_i(TokenKind op);
 	void emit_arith_bin_op_f(TokenKind op);
-	void emit_arith_bin_op(PrimitiveType primitive_type, TokenKind op);
+	void emit_arith_bin_op(BuiltIn built_in_type, TokenKind op);
 	void emit_arith_un_op_i(TokenKind op);
 	void emit_arith_un_op_f(TokenKind op);
-	void emit_arith_un_op(PrimitiveType primitive_type, TokenKind op);
-	void emit_convert(PrimitiveType src, PrimitiveType dst);
-	void emit_convert_i2f();
-	void emit_convert_f2i();
+	void emit_arith_un_op(BuiltIn built_in_type, TokenKind op);
+	void emit_convert(BuiltIn src, BuiltIn dst);
 };

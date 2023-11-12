@@ -86,12 +86,12 @@ void SemanticAnalyzer::visit(ASTExpressionLiteral* node)
 	{
 		case TokenKind::LITERAL_INT:
 		{
-			node->type = new ASTTypePrimitive(PrimitiveType::T_INT);
+			node->type = new ASTTypePrimitive(BuiltIn::T_I32);
 			break;
 		}
 		case TokenKind::LITERAL_FLOAT:
 		{
-			node->type = new ASTTypePrimitive(PrimitiveType::T_FLOAT);
+			node->type = new ASTTypePrimitive(BuiltIn::T_F32);
 			break;
 		}
 		default:
@@ -118,36 +118,59 @@ bool SemanticAnalyzer::is_un_op_bitwise(TokenKind op)
 	return op == TokenKind::TILDE;
 }
 
-bool SemanticAnalyzer::is_numeric(PrimitiveType primitive_type)
+bool SemanticAnalyzer::is_numeric(BuiltIn built_in_type)
 {
 	return
-		is_integral(primitive_type) ||
-		is_decimal(primitive_type);
+		is_integral(built_in_type) ||
+		is_decimal(built_in_type);
 }
 
-bool SemanticAnalyzer::is_integral(PrimitiveType primitive_type)
+bool SemanticAnalyzer::is_integral(BuiltIn built_in_type)
 {
 	return
-		primitive_type == PrimitiveType::T_INT ||
-		primitive_type == PrimitiveType::T_CHAR;
+		is_integer(built_in_type) ||
+		is_char(built_in_type);
 }
 
-bool SemanticAnalyzer::is_decimal(PrimitiveType primitive_type)
+bool SemanticAnalyzer::is_char(BuiltIn built_in_type)
 {
-	return
-		primitive_type == PrimitiveType::T_FLOAT;
+	return built_in_type == BuiltIn::T_CHAR;
 }
 
-bool SemanticAnalyzer::is_logic(PrimitiveType primitive_type)
+bool SemanticAnalyzer::is_integer(BuiltIn built_in_type)
 {
 	return
-		primitive_type == PrimitiveType::T_BOOL;
+		built_in_type == BuiltIn::T_I8 ||
+		built_in_type == BuiltIn::T_I16 ||
+		built_in_type == BuiltIn::T_I32;
 }
 
-bool SemanticAnalyzer::is_void(PrimitiveType primitive_type)
+bool SemanticAnalyzer::is_decimal(BuiltIn built_in_type)
 {
 	return
-		primitive_type == PrimitiveType::T_VOID;
+		built_in_type == BuiltIn::T_F32;
+}
+
+bool SemanticAnalyzer::is_logic(BuiltIn built_in_type)
+{
+	return
+		built_in_type == BuiltIn::T_BOOL;
+}
+
+bool SemanticAnalyzer::is_void(BuiltIn built_in_type)
+{
+	return
+		built_in_type == BuiltIn::T_VOID;
+}
+
+bool SemanticAnalyzer::is_reference(BuiltIn built_in_type)
+{
+	return built_in_type == BuiltIn::T_REF;
+}
+
+bool SemanticAnalyzer::is_array(BuiltIn built_in_type)
+{
+	return built_in_type == BuiltIn::T_ARR;
 }
 
 
@@ -157,35 +180,35 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 
 	if (node->expr->type->kind == NodeKind::TYPE_PRIMITIVE)
 	{
-		PrimitiveType primitive_type =
-			((ASTTypePrimitive*)node->expr->type)->primitive_type;
+		BuiltIn built_in_type =
+			((ASTTypePrimitive*)node->expr->type)->built_in_type;
 
 		switch (node->op.kind)
 		{
 			case TokenKind::PLUS:
 			case TokenKind::MINUS:
 			{
-				if (is_numeric(primitive_type))
+				if (is_numeric(built_in_type))
 				{
-					node->type = new ASTTypePrimitive(primitive_type);
+					node->type = new ASTTypePrimitive(built_in_type);
 					return;
 				}
 				break;
 			}
 			case TokenKind::KW_NOT:
 			{
-				if (is_logic(primitive_type))
+				if (is_logic(built_in_type))
 				{
-					node->type = new ASTTypePrimitive(PrimitiveType::T_BOOL);
+					node->type = new ASTTypePrimitive(BuiltIn::T_BOOL);
 					return;
 				}
 				break;
 			}
 			case TokenKind::TILDE:
 			{
-				if (is_integral(primitive_type))
+				if (is_integral(built_in_type))
 				{
-					node->type = new ASTTypePrimitive(primitive_type);
+					node->type = new ASTTypePrimitive(built_in_type);
 					return;
 				}
 				break;
@@ -208,9 +231,29 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 	pt_unreachable();
 }
 
-PrimitiveType SemanticAnalyzer::get_common_numeric_type(PrimitiveType src, PrimitiveType dst)
+BuiltIn SemanticAnalyzer::get_common_numeric_type(BuiltIn src, BuiltIn dst)
 {
-	return (PrimitiveType)std::max((int)src, int(dst));
+	// convesion to the same type
+	if (src == dst)
+	{
+		return src;
+	}
+
+	// any integral to decimal is allowed
+	if (is_integral(src))
+	{
+		if (is_decimal(dst))
+		{
+			return dst;
+		}
+		else if (is_integral(dst))
+		{
+
+		}
+	}
+
+
+	return (BuiltIn)std::max((int)src, int(dst));
 }
 
 void SemanticAnalyzer::visit(ASTExpressionBinary* node)
@@ -218,13 +261,13 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 	node->left->accept(this);
 	node->right->accept(this);
 
-	// node->type = new ASTTypePrimitive(PrimitiveType::T_INT);
+	// node->type = new ASTTypePrimitive(BuiltIn::T_I);
 
 	if (node->left->type->kind == NodeKind::TYPE_PRIMITIVE &&
 		node->right->type->kind == NodeKind::TYPE_PRIMITIVE)
 	{
-		PrimitiveType left = ((ASTTypePrimitive*)node->left->type)->primitive_type;
-		PrimitiveType right = ((ASTTypePrimitive*)node->right->type)->primitive_type;
+		BuiltIn left = ((ASTTypePrimitive*)node->left->type)->built_in_type;
+		BuiltIn right = ((ASTTypePrimitive*)node->right->type)->built_in_type;
 
 		// handle arithmetic operators here
 		switch (node->op.kind)
@@ -237,16 +280,16 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 			{
 				if (is_numeric(left) && is_numeric(right))
 				{
-					ASTType* result_type = new ASTTypePrimitive(get_common_numeric_type(left, right));
-					if (!node->left->type->is_equal(result_type))
+					if (left != right)
 					{
-						node->left = new ASTExpressionCast(node->left, (ASTType*)result_type->clone());
+						pt_error
+						(
+							"implicit conversion not allowed between %s and %s",
+							built_in_to_string(left),
+							built_in_to_string(right)
+						);
 					}
-					if (!node->right->type->is_equal(result_type))
-					{
-						ASTType* dst_type = (ASTType*)result_type->clone();
-						node->right = new ASTExpressionCast(node->right, dst_type);
-					}
+					ASTType* result_type = new ASTTypePrimitive(left);
 					node->type = result_type;
 					return;
 				}
@@ -257,7 +300,7 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 			{
 				if (is_logic(left) && is_logic(right))
 				{
-					node->type = new ASTTypePrimitive(PrimitiveType::T_BOOL);
+					node->type = new ASTTypePrimitive(BuiltIn::T_BOOL);
 					return;
 				}
 				break;
@@ -268,10 +311,69 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 			{
 				if (is_integral(left) && is_integral(right))
 				{
-					node->type = new ASTTypePrimitive(get_common_numeric_type(left, right));
+					if (left != right)
+					{
+						pt_error
+						(
+							"implicit conversion not allowed between %s and %s",
+							built_in_to_string(left),
+							built_in_to_string(right)
+						);
+					}
+					ASTType* result_type = new ASTTypePrimitive(left);
+					node->type = result_type;
 					return;
 				}
 				break;
+			}
+			case TokenKind::LEFT_ANGLE:
+			case TokenKind::LEFT_ANGLE_EQUAL:
+			case TokenKind::RIGHT_ANGLE:
+			case TokenKind::RIGHT_ANGLE_EQUAL:
+			{
+				if (is_numeric(left) && is_numeric(right))
+				{
+					if (left != right)
+					{
+						pt_error
+						(
+							"implicit conversion not allowed between %s and %s",
+							built_in_to_string(left),
+							built_in_to_string(right)
+						);
+					}
+					ASTType* result_type = new ASTTypePrimitive(left);
+					node->type = result_type;
+					return;
+				}
+				break;
+			}
+			case TokenKind::EQUAL:
+			case TokenKind::NOT_EQUAL:
+			{
+				if (is_numeric(left) && is_numeric(right))
+				{
+					if (left != right)
+					{
+						pt_error
+						(
+							"implicit conversion not allowed between %s and %s",
+							built_in_to_string(left),
+							built_in_to_string(right)
+						);
+					}
+					ASTType* result_type = new ASTTypePrimitive(left);
+					node->type = result_type;
+					return;
+				}
+				else if (is_reference(left) && is_reference(right))
+				{
+
+				}
+				else if (is_array(left) && is_array(right))
+				{
+
+				}
 			}
 			default:
 			{

@@ -47,16 +47,31 @@ struct SemanticAnalyzer : Visitor
 
 	void visit(ASTStatementBlock* node) override;
 
-	//ASTType* resolve_un_op_primitive_type(TokenKind op, PrimitiveType primitive_type);
-	//ASTType* resolve_bin_op_primitive_type(TokenKind op, PrimitiveType primitive_type);
+	//ASTType* resolve_un_op_built_in_type(TokenKind op, BuiltIn built_in_type);
+	//ASTType* resolve_bin_op_built_in_type(TokenKind op, BuiltIn built_in_type);
+
+	const std::vector<std::vector<BuiltIn>> numeric_conversion_table =
+	{
+		//					char				int8				int16				int32				float32
+		/*	char	*/	{ 	BuiltIn::T_CHAR,	BuiltIn::T_I8,		BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
+		/*	int8	*/	{ 	BuiltIn::T_I8, 		BuiltIn::T_I8, 		BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
+		/*	int16	*/	{ 	BuiltIn::T_I16,		BuiltIn::T_I16, 	BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
+		/*	int32	*/	{ 	BuiltIn::T_I32,		BuiltIn::T_I32, 	BuiltIn::T_I32, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
+		/*	float32	*/	{ 	BuiltIn::T_F32,		BuiltIn::T_F32, 	BuiltIn::T_F32, 	BuiltIn::T_F32, 	BuiltIn::T_F32 },
+	};
+
 
 	bool is_un_op_arith(TokenKind op);
 	bool is_un_op_logic(TokenKind op);
 	bool is_un_op_bitwise(TokenKind op);
-	bool is_numeric(PrimitiveType primitive_type);
-	bool is_integral(PrimitiveType primitive_type);
-	bool is_decimal(PrimitiveType primitive_type);
-	bool is_logic(PrimitiveType primitive_type);
-	bool is_void(PrimitiveType primitive_type);
-	PrimitiveType get_common_numeric_type(PrimitiveType src, PrimitiveType dst);
+	bool is_numeric(BuiltIn built_in_type);
+	bool is_char(BuiltIn built_in_type);
+	bool is_integer(BuiltIn built_in_type);
+	bool is_integral(BuiltIn built_in_type);
+	bool is_decimal(BuiltIn built_in_type);
+	bool is_logic(BuiltIn built_in_type);
+	bool is_void(BuiltIn built_in_type);
+	bool is_reference(BuiltIn built_in_type);
+	bool is_array(BuiltIn built_in_type);
+	BuiltIn get_common_numeric_type(BuiltIn src, BuiltIn dst);
 };

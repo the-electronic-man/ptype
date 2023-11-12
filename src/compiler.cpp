@@ -111,13 +111,27 @@ void Compiler::emit_arith_bin_op_f(TokenKind op)
 	code.push_back((uint8_t)inst);
 }
 
-void Compiler::emit_arith_bin_op(PrimitiveType primitive_type, TokenKind op)
+void Compiler::emit_arith_bin_op(BuiltIn built_in_type, TokenKind op)
 {
-	switch (primitive_type)
+	switch (built_in_type)
 	{
-		case PrimitiveType::T_INT:		emit_arith_bin_op_i(op); break;
-		case PrimitiveType::T_FLOAT:	emit_arith_bin_op_f(op); break;
-		default:						pt_unreachable();
+		case BuiltIn::T_CHAR:
+		case BuiltIn::T_I8:
+		case BuiltIn::T_I16:
+		case BuiltIn::T_I32:
+		{
+			emit_arith_bin_op_i(op);
+			break;
+		}
+		case BuiltIn::T_F32:
+		{
+			emit_arith_bin_op_f(op);
+			break;
+		}
+		default:
+		{
+			pt_unreachable();
+		}
 	}
 }
 
@@ -141,21 +155,30 @@ void Compiler::emit_arith_un_op_f(TokenKind op)
 	}
 }
 
-void Compiler::emit_arith_un_op(PrimitiveType primitive_type, TokenKind op)
+void Compiler::emit_arith_un_op(BuiltIn built_in_type, TokenKind op)
 {
-	switch (primitive_type)
+	switch (built_in_type)
 	{
-		case PrimitiveType::T_INT:		emit_arith_un_op_i(op); break;
-		case PrimitiveType::T_FLOAT:	emit_arith_un_op_f(op); break;
-		default:						pt_unreachable();
+		case BuiltIn::T_I8:
+		case BuiltIn::T_I16:
+		case BuiltIn::T_I32:
+		{
+			emit_arith_un_op_i(op);
+			break;
+		}
+		case BuiltIn::T_F32:
+		{
+			emit_arith_un_op_f(op);
+			break;
+		}
+		default:
+		{
+			pt_unreachable();
+		}
 	}
 }
 
-void Compiler::emit_convert_i2f() { emit(Bytecode::I2F); }
-
-void Compiler::emit_convert_f2i() { emit(Bytecode::F2I); }
-
-void Compiler::emit_convert(PrimitiveType src, PrimitiveType dst)
+void Compiler::emit_convert(BuiltIn src, BuiltIn dst)
 {
 	if (src == dst)
 	{
@@ -164,9 +187,22 @@ void Compiler::emit_convert(PrimitiveType src, PrimitiveType dst)
 
 	switch (src)
 	{
-		case PrimitiveType::T_FLOAT:	emit_convert_i2f(); break;
-		case PrimitiveType::T_INT:		emit_convert_f2i(); break;
-		default: pt_unreachable();
+		case BuiltIn::T_F32:
+		{
+			emit(Bytecode::I2F);
+			break;
+		}
+		case BuiltIn::T_I8:
+		case BuiltIn::T_I16:
+		case BuiltIn::T_I32:
+		{
+			emit(Bytecode::F2I);
+			break;
+		}
+		default:
+		{
+			pt_unreachable();
+		}
 	}
 }
 
@@ -195,8 +231,8 @@ void Compiler::disassemble()
 void Compiler::visit(ASTExpressionCast* node)
 {
 	node->expr->accept(this);
-	//PrimitiveType src = node->expr->type->primitive_type;
-	//PrimitiveType dst = node->type->primitive_type;
+	//BuiltIn src = node->expr->type->built_in_type;
+	//BuiltIn dst = node->type->built_in_type;
 	//emit_convert(src, dst);
 }
 
@@ -218,18 +254,18 @@ void Compiler::visit(ASTExpressionLiteral* node)
 void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
-	PrimitiveType primitive_type =
-		((ASTTypePrimitive*)node->type)->primitive_type;
-	emit_arith_un_op(primitive_type, node->op.kind);
+	BuiltIn built_in_type =
+		((ASTTypePrimitive*)node->type)->built_in_type;
+	emit_arith_un_op(built_in_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionBinary* node)
 {
 	node->left->accept(this);
 	node->right->accept(this);
-	PrimitiveType primitive_type =
-		((ASTTypePrimitive*)node->type)->primitive_type;
-	emit_arith_bin_op(primitive_type, node->op.kind);
+	BuiltIn built_in_type =
+		((ASTTypePrimitive*)node->type)->built_in_type;
+	emit_arith_bin_op(built_in_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionAssign* node)

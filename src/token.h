@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <unordered_map>
 
 #include "debug.h"
 
@@ -14,6 +15,8 @@ enum class TokenKind : int32_t
 };
 
 const char* token_kind_to_string(TokenKind kind);
+
+extern const std::unordered_map<std::string, TokenKind> reserved_keywords;
 
 struct Token
 {

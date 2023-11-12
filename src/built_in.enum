@@ -1,0 +1,11 @@
+ENUM_ITEM(T_VOID, "void") \
+ENUM_ITEM(T_BOOL, "bool") \
+ENUM_ITEM(T_CHAR, "char") \
+ENUM_ITEM(T_I8, "int8") \
+ENUM_ITEM(T_I16, "int16") \
+ENUM_ITEM(T_I32, "int32") \
+/* ENUM_ITEM(T_INT64, "int64") */ \
+ENUM_ITEM(T_F32, "float32") \
+/* ENUM_ITEM(T_FLOAT64, "float64") */ \
+ENUM_ITEM(T_ARR, "array") \
+ENUM_ITEM(T_REF, "ref") \

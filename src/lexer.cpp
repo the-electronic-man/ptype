@@ -123,19 +123,14 @@ Token Lexer::get_identifier()
 	}
 
 	size_t it_end = position;
-
 	std::string str = std::string(buffer + it_begin, it_end - it_begin);
+	auto it = reserved_keywords.find(str);
+	if (it != reserved_keywords.end())
+	{
+		return Token{ it->second };
+	}
 
-	TokenKind kind;
-
-	if (str == "var") { kind = TokenKind::KW_VAR; }
-	else if (str == "cast") { kind = TokenKind::KW_CAST; }
-	else if (str == "and") { kind = TokenKind::KW_AND; }
-	else if (str == "or") { kind = TokenKind::KW_OR; }
-	else if (str == "not") { kind = TokenKind::KW_NOT; }
-	else { kind = TokenKind::IDENTIFIER; }
-
-	return Token(kind, str);
+	return Token{ TokenKind::IDENTIFIER, str };
 }
 
 Token Lexer::get_number()
@@ -278,7 +273,8 @@ Token Lexer::get_token_raw()
 					}
 					default:
 					{
-						// fallthrough
+						pt_error("unknown symbol: %c", ch);
+						break;
 					}
 				}
 			}

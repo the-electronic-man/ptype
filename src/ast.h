@@ -1,6 +1,6 @@
 #pragma once
 #include "token.h"
-#include "built_in_types.h"
+#include "built_in.h"
 #include "symbol.h"
 #include "debug.h"
 
@@ -120,11 +120,11 @@ struct ASTType : ASTNode
 
 struct ASTTypePrimitive : ASTType
 {
-	PrimitiveType primitive_type;
+	BuiltIn built_in_type;
 
-	ASTTypePrimitive(PrimitiveType primitive_type) : ASTType(NodeKind::TYPE_PRIMITIVE)
+	ASTTypePrimitive(BuiltIn built_in_type) : ASTType(NodeKind::TYPE_PRIMITIVE)
 	{
-		this->primitive_type = primitive_type;
+		this->built_in_type = built_in_type;
 	}
 
 	void accept(Visitor* visitor) override
@@ -134,7 +134,7 @@ struct ASTTypePrimitive : ASTType
 
 	ASTNode* clone() override
 	{
-		ASTTypePrimitive* node = new ASTTypePrimitive(primitive_type);
+		ASTTypePrimitive* node = new ASTTypePrimitive(built_in_type);
 		return node;
 	}
 
@@ -142,12 +142,12 @@ struct ASTTypePrimitive : ASTType
 	{
 		return
 			ASTType::is_equal(other) &&
-			primitive_type == ((ASTTypePrimitive*)other)->primitive_type;
+			built_in_type == ((ASTTypePrimitive*)other)->built_in_type;
 	}
 
 	std::string to_string() override
 	{
-		return primitive_type_to_string(primitive_type);
+		return built_in_to_string(built_in_type);
 	}
 };
 

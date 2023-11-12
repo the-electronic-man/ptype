@@ -16,6 +16,24 @@ const char* token_kind_to_string(TokenKind kind)
 	}
 }
 
+const std::unordered_map<std::string, TokenKind> reserved_keywords =
+{
+	{ "var", TokenKind::KW_VAR },
+	{ "cast", TokenKind::KW_CAST },
+	{ "and", TokenKind::KW_AND },
+	{ "or", TokenKind::KW_OR },
+	{ "not", TokenKind::KW_NOT },
+	{ "null", TokenKind::LITERAL_NULL },
+	{ "bool", TokenKind::KW_BOOL },
+	{ "char", TokenKind::KW_CHAR },
+	{ "i8", TokenKind::KW_INT8 },
+	{ "i16", TokenKind::KW_INT16 },
+	{ "i32", TokenKind::KW_INT32 },
+	/* { "i64", TokenKind::KW_INT64 }, */
+	{ "f32", TokenKind::KW_FLOAT32 },
+	/* { "f64", TokenKind::KW_FLOAT64 }, */
+};
+
 Token::Token()
 {
 	this->kind = TokenKind::NONE;

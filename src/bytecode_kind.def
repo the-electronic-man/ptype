@@ -5,9 +5,9 @@ ENUM_ITEM(LOAD_CONST, "load_const", 1, 1) \
 ENUM_ITEM(LOAD_LOCAL, "load_local", 1, 1) \
 ENUM_ITEM(LOAD_ARRAY, "load_array", 1, 1) \
 ENUM_ITEM(LOAD_FIELD, "load_field", 1, 1) \
-ENUM_ITEM(STORE_LOCAL ,"store_local", 1, -1) \
-ENUM_ITEM(STORE_ARRAY ,"store_array", 1, -1) \
-ENUM_ITEM(STORE_FIELD ,"store_field", 1, -1) \
+ENUM_ITEM(STORE_LOCAL, "store_local", 1, -1) \
+ENUM_ITEM(STORE_ARRAY, "store_array", 1, -1) \
+ENUM_ITEM(STORE_FIELD, "store_field", 1, -1) \
 ENUM_ITEM(POP, "pop", 0, -1) \
 ENUM_ITEM(DUP, "dup", 0, 1) \
 /* int binary arithmetic */ \
@@ -20,6 +20,8 @@ ENUM_ITEM(MOD_I, "mod_i", 0, -1) \
 ENUM_ITEM(NEG_I, "neg_i", 0, 0) \
 ENUM_ITEM(INC_I, "inc_i", 0, 0) \
 /* conversion */ \
+ENUM_ITEM(I2C, "i2c", 0, 0) \
+ENUM_ITEM(I2S, "i2s", 0, 0) \
 ENUM_ITEM(I2F, "i2f", 0, 0) \
 ENUM_ITEM(F2I, "f2i", 0, 0) \
 /* int bitwise */ \
