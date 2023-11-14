@@ -31,9 +31,7 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTNameSimple* node) override;
 	void visit(ASTNameQualified* node) override;
 
-	void visit(ASTTypePrimitive* node) override;
-	void visit(ASTTypeReference* node) override;
-	void visit(ASTTypeArray* node) override;
+	void visit(ASTType* node) override;
 
 	void visit(ASTExpressionCast* node) override;
 	void visit(ASTExpressionGroup* node) override;
@@ -50,17 +48,6 @@ struct SemanticAnalyzer : Visitor
 	//ASTType* resolve_un_op_built_in_type(TokenKind op, BuiltIn built_in_type);
 	//ASTType* resolve_bin_op_built_in_type(TokenKind op, BuiltIn built_in_type);
 
-	const std::vector<std::vector<BuiltIn>> numeric_conversion_table =
-	{
-		//					char				int8				int16				int32				float32
-		/*	char	*/	{ 	BuiltIn::T_CHAR,	BuiltIn::T_I8,		BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
-		/*	int8	*/	{ 	BuiltIn::T_I8, 		BuiltIn::T_I8, 		BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
-		/*	int16	*/	{ 	BuiltIn::T_I16,		BuiltIn::T_I16, 	BuiltIn::T_I16, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
-		/*	int32	*/	{ 	BuiltIn::T_I32,		BuiltIn::T_I32, 	BuiltIn::T_I32, 	BuiltIn::T_I32, 	BuiltIn::T_F32 },
-		/*	float32	*/	{ 	BuiltIn::T_F32,		BuiltIn::T_F32, 	BuiltIn::T_F32, 	BuiltIn::T_F32, 	BuiltIn::T_F32 },
-	};
-
-
 	bool is_un_op_arith(TokenKind op);
 	bool is_un_op_logic(TokenKind op);
 	bool is_un_op_bitwise(TokenKind op);
@@ -73,5 +60,11 @@ struct SemanticAnalyzer : Visitor
 	bool is_void(BuiltIn built_in_type);
 	bool is_reference(BuiltIn built_in_type);
 	bool is_array(BuiltIn built_in_type);
+	bool is_primitive(BuiltIn built_in_type);
+
+	bool is_implicit_cast(BuiltIn src_type, BuiltIn dst_type);
+
 	BuiltIn get_common_numeric_type(BuiltIn src, BuiltIn dst);
+
+	ASTExpression* insert_cast_to(ASTExpression* dst_node, ASTType* src_type, ASTType* dst_type);
 };

@@ -57,7 +57,7 @@ ASTType* Parser::parse_type()
 		return nullptr;
 	}
 	(void)expect(TokenKind::IDENTIFIER);
-	ASTTypePrimitive* node = new ASTTypePrimitive(built_in_type);
+	ASTType* node = new ASTType(built_in_type);
 	return node;
 }
 
@@ -181,7 +181,7 @@ parse_function(parse_expr_factor, parse_expr_unary, TokenKind::STAR, TokenKind::
 parse_function(parse_expr_term, parse_expr_factor, TokenKind::PLUS, TokenKind::MINUS)
 parse_function(parse_expr_shift, parse_expr_term, TokenKind::LEFT_ANGLE_LEFT_ANGLE, TokenKind::RIGHT_ANGLE_RIGHT_ANGLE)
 parse_function(parse_expr_relational, parse_expr_shift, TokenKind::LEFT_ANGLE, TokenKind::LEFT_ANGLE_EQUAL, TokenKind::RIGHT_ANGLE, TokenKind::RIGHT_ANGLE_EQUAL)
-parse_function(parse_expr_equality, parse_expr_relational, TokenKind::EQUAL, TokenKind::NOT_EQUAL)
+parse_function(parse_expr_equality, parse_expr_relational, TokenKind::EQUAL, TokenKind::NOT_EQUAL, TokenKind::KW_IS)
 parse_function(parse_expr_bitwise_and, parse_expr_equality, TokenKind::AMPERSAND)
 parse_function(parse_expr_bitwise_xor, parse_expr_bitwise_and, TokenKind::CARET)
 parse_function(parse_expr_bitwise_or, parse_expr_bitwise_xor, TokenKind::VERTICAL_BAR)

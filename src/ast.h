@@ -27,9 +27,6 @@ struct ASTNameSimple;
 struct ASTNameQualified;
 
 struct ASTType;
-struct ASTTypePrimitive;
-struct ASTTypeReference;
-struct ASTTypeArray;
 
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
@@ -57,9 +54,7 @@ struct Visitor
 	virtual void visit(ASTNameSimple* node) {}
 	virtual void visit(ASTNameQualified* node) {}
 
-	virtual void visit(ASTTypePrimitive* node) {}
-	virtual void visit(ASTTypeReference* node) {}
-	virtual void visit(ASTTypeArray* node) {}
+	virtual void visit(ASTType* node) {}
 
 	virtual void visit(ASTExpressionCast* node) {}
 	virtual void visit(ASTExpressionGroup* node) {}
@@ -108,82 +103,6 @@ struct ASTDeclaration : ASTStatement
 	}
 };
 
-struct ASTType : ASTNode
-{
-	ASTType(NodeKind kind) : ASTNode(kind) {}
-	virtual bool is_equal(ASTType* other)
-	{
-		return kind == other->kind;
-	}
-	virtual std::string to_string() = 0;
-};
-
-struct ASTTypePrimitive : ASTType
-{
-	BuiltIn built_in_type;
-
-	ASTTypePrimitive(BuiltIn built_in_type) : ASTType(NodeKind::TYPE_PRIMITIVE)
-	{
-		this->built_in_type = built_in_type;
-	}
-
-	void accept(Visitor* visitor) override
-	{
-		visitor->visit(this);
-	}
-
-	ASTNode* clone() override
-	{
-		ASTTypePrimitive* node = new ASTTypePrimitive(built_in_type);
-		return node;
-	}
-
-	virtual bool is_equal(ASTType* other)
-	{
-		return
-			ASTType::is_equal(other) &&
-			built_in_type == ((ASTTypePrimitive*)other)->built_in_type;
-	}
-
-	std::string to_string() override
-	{
-		return built_in_to_string(built_in_type);
-	}
-};
-
-struct ASTTypeArray : ASTType
-{
-	ASTType* subtype = nullptr;
-
-	ASTTypeArray(ASTType* subtype) : ASTType(NodeKind::TYPE_ARRAY)
-	{
-		this->subtype = subtype;
-		subtype->parent = this;
-	}
-
-	void accept(Visitor* visitor) override
-	{
-		visitor->visit(this);
-	}
-
-	ASTNode* clone() override
-	{
-		ASTTypeArray* node =
-			new ASTTypeArray((ASTType*)subtype->clone());
-		return node;
-	}
-
-	virtual bool is_equal(ASTType* other) override
-	{
-		return false;
-	}
-
-	std::string to_string() override
-	{
-		return subtype->to_string() + "[]";
-	}
-};
-
 struct ASTName : ASTNode
 {
 	Symbol* symbol = nullptr;
@@ -191,15 +110,36 @@ struct ASTName : ASTNode
 	virtual std::string to_string() = 0;
 };
 
-
-struct ASTTypeReference : ASTType
+struct ASTType : ASTNode
 {
-	ASTName* name = nullptr;
+	BuiltIn built_in_type;
 
-	ASTTypeReference(ASTName* name) : ASTType(NodeKind::TYPE_REFERENCE)
+	union
+	{
+		ASTType* subtype;
+		ASTName* name;
+	};
+
+	ASTType(ASTType* subtype) : ASTNode(NodeKind::TYPE)
+	{
+		this->subtype = subtype;
+		this->built_in_type = BuiltIn::T_ARR;
+	}
+
+	ASTType(ASTName* name) : ASTNode(NodeKind::TYPE)
 	{
 		this->name = name;
-		name->parent = this;
+		this->built_in_type = BuiltIn::T_REF;
+	}
+
+	ASTType(BuiltIn built_in_type) : ASTNode(NodeKind::TYPE)
+	{
+		this->built_in_type = built_in_type;
+	}
+
+	bool is_equal(ASTType* other)
+	{
+		return kind == other->kind;
 	}
 
 	void accept(Visitor* visitor) override
@@ -209,19 +149,40 @@ struct ASTTypeReference : ASTType
 
 	ASTNode* clone() override
 	{
-		ASTTypeReference* node =
-			new ASTTypeReference((ASTName*)name->clone());
-		return node;
+		switch (built_in_type)
+		{
+			case BuiltIn::T_REF:
+			{
+				return new ASTType((ASTType*)subtype->clone());
+			}
+			case BuiltIn::T_ARR:
+			{
+				return new ASTType((ASTName*)name->clone());
+			}
+			default:
+			{
+				return new ASTType(built_in_type);
+			}
+		}
 	}
 
-	virtual bool is_equal(ASTType* other) override
+	std::string to_string()
 	{
-		return false;
-	}
-
-	std::string to_string() override
-	{
-		return name->to_string() + "[]";
+		switch (built_in_type)
+		{
+			case BuiltIn::T_REF:
+			{
+				return name->to_string();
+			}
+			case BuiltIn::T_ARR:
+			{
+				return subtype->to_string() + "[]";
+			}
+			default:
+			{
+				return built_in_to_string(built_in_type);
+			}
+		}
 	}
 };
 

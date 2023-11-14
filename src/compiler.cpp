@@ -254,8 +254,7 @@ void Compiler::visit(ASTExpressionLiteral* node)
 void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
-	BuiltIn built_in_type =
-		((ASTTypePrimitive*)node->type)->built_in_type;
+	BuiltIn built_in_type = node->type->built_in_type;
 	emit_arith_un_op(built_in_type, node->op.kind);
 }
 
@@ -263,8 +262,7 @@ void Compiler::visit(ASTExpressionBinary* node)
 {
 	node->left->accept(this);
 	node->right->accept(this);
-	BuiltIn built_in_type =
-		((ASTTypePrimitive*)node->type)->built_in_type;
+	BuiltIn built_in_type = node->type->built_in_type;
 	emit_arith_bin_op(built_in_type, node->op.kind);
 }
 

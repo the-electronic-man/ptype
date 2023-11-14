@@ -23,6 +23,7 @@ const std::unordered_map<std::string, TokenKind> reserved_keywords =
 	{ "and", TokenKind::KW_AND },
 	{ "or", TokenKind::KW_OR },
 	{ "not", TokenKind::KW_NOT },
+	{ "is", TokenKind::KW_IS },
 	{ "null", TokenKind::LITERAL_NULL },
 	{ "bool", TokenKind::KW_BOOL },
 	{ "char", TokenKind::KW_CHAR },
