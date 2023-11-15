@@ -6,7 +6,7 @@
 
 enum class Bytecode
 {
-#include "bytecode_kind.def"
+#include "bytecode.def"
 };
 
 

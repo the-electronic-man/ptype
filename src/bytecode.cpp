@@ -8,7 +8,7 @@ const char* bytecode_to_string(Bytecode code)
 {
 	switch (code)
 	{
-#include "bytecode_kind.def"
+#include "bytecode.def"
 		default: return "undefined";
 	}
 }
@@ -21,7 +21,7 @@ int bytecode_operand_count(Bytecode code)
 {
 	switch (code)
 	{
-#include "bytecode_kind.def"
+#include "bytecode.def"
 		default: return -1;
 	}
 }
@@ -34,7 +34,7 @@ int bytecode_stack_transition(Bytecode code)
 {
 	switch (code)
 	{
-#include "bytecode_kind.def"
+#include "bytecode.def"
 		default: return 255;
 	}
 }

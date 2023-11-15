@@ -11,44 +11,17 @@ void SemanticAnalyzer::process(ASTNode* node)
 
 void SemanticAnalyzer::visit(ASTNameSimple* node)
 {
-	switch (pass_type)
+	Symbol* symbol = crt_scope->get_symbol(node->token.buffer);
+	if (!symbol)
 	{
-		case PassType::Declare:
-		{
-
-			break;
-		}
-		case PassType::Resolve:
-		{
-
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		pt_error("symbol %s not found in this scope", node->token.buffer);
 	}
+	node->symbol = symbol;
 }
 
 void SemanticAnalyzer::visit(ASTNameQualified* node)
 {
-	switch (pass_type)
-	{
-		case PassType::Declare:
-		{
 
-			break;
-		}
-		case PassType::Resolve:
-		{
-
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
 }
 
 void SemanticAnalyzer::visit(ASTType* node)
@@ -287,7 +260,7 @@ void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 			(ASTType*)node->assignee->type->clone()
 		);
 
-	node->type = (ASTType*)node->assignee->clone();
+	node->type = (ASTType*)node->assignee->type->clone();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionName* node)
@@ -309,6 +282,7 @@ void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 				nullptr
 			);
 		symbol->index = crt_scope->var_index;
+		symbol->var_kind = SymbolVariable::LOCAL;
 		crt_scope->var_index++;
 		crt_scope->add_symbol(symbol, node->name.buffer);
 		node->symbol = symbol;
@@ -327,6 +301,14 @@ void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 		}
 		//((SymbolVariable*)node->get_name()->symbol)->type = (ASTType*)node->expr->type->clone();
 
+	}
+}
+
+void SemanticAnalyzer::visit(ASTStatementExpression* node)
+{
+	if (pass_type == PassType::Resolve)
+	{
+		node->expr->accept(this);
 	}
 }
 

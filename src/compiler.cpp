@@ -19,7 +19,7 @@ void Compiler::emit_dup()
 
 void Compiler::emit_load_const(uint8_t value)
 {
-	emit(Bytecode::LOAD_CONST, value);
+	emit(Bytecode::LD_CST, value);
 }
 
 void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
@@ -33,12 +33,12 @@ void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
 		case SymbolVariable::LOCAL:
 		case SymbolVariable::PARAMETER:
 		{
-			emit(Bytecode::LOAD_LOCAL, index);
+			emit(Bytecode::LD_LOC, index);
 			break;
 		}
 		case SymbolVariable::MEMBER:
 		{
-			emit(Bytecode::LOAD_FIELD, index);
+			emit(Bytecode::LD_FLD, index);
 			break;
 		}
 		case SymbolVariable::STATIC:
@@ -63,12 +63,12 @@ void Compiler::emit_store(SymbolVariable::VariableKind kind, uint8_t index)
 		case SymbolVariable::LOCAL:
 		case SymbolVariable::PARAMETER:
 		{
-			emit(Bytecode::STORE_LOCAL, index);
+			emit(Bytecode::ST_LOC, index);
 			break;
 		}
 		case SymbolVariable::MEMBER:
 		{
-			emit(Bytecode::STORE_FIELD, index);
+			emit(Bytecode::ST_FLD, index);
 			break;
 		}
 		case SymbolVariable::STATIC:
@@ -244,12 +244,27 @@ void Compiler::visit(ASTExpressionGroup* node)
 
 void Compiler::visit(ASTExpressionLiteral* node)
 {
-	int64_t value = std::stoll(node->token.buffer);
+	union { int32_t i32; float f32; } extract;
+	switch (node->type->built_in_type)
+	{
+		case BuiltIn::T_I8:
+		case BuiltIn::T_I16:
+		case BuiltIn::T_I32:
+		{
+			extract.i32 = std::stoi(node->token.buffer);
+			break;
+		}
+		case BuiltIn::T_F32:
+		{
+			extract.f32 = std::stof(node->token.buffer);
+			break;
+		}
+	}
 
 	// TODO :	emit the appropiate instruction
 	//			depending on value
 
-	emit_load_const(value);
+	emit_load_const(extract.i32);
 }
 
 void Compiler::visit(ASTExpressionUnary* node)

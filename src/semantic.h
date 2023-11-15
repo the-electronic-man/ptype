@@ -44,6 +44,7 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTDeclarationVariable* node) override;
 
 	void visit(ASTStatementBlock* node) override;
+	void visit(ASTStatementExpression* node) override;
 
 	//ASTType* resolve_un_op_built_in_type(TokenKind op, BuiltIn built_in_type);
 	//ASTType* resolve_bin_op_built_in_type(TokenKind op, BuiltIn built_in_type);
