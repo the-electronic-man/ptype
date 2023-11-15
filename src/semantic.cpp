@@ -91,79 +91,6 @@ void SemanticAnalyzer::visit(ASTExpressionLiteral* node)
 	}
 }
 
-bool SemanticAnalyzer::is_un_op_arith(TokenKind op)
-{
-	return
-		op == TokenKind::PLUS ||
-		op == TokenKind::MINUS;
-}
-
-bool SemanticAnalyzer::is_un_op_logic(TokenKind op)
-{
-	return op == TokenKind::KW_NOT;
-}
-
-bool SemanticAnalyzer::is_un_op_bitwise(TokenKind op)
-{
-	return op == TokenKind::TILDE;
-}
-
-bool SemanticAnalyzer::is_numeric(BuiltIn built_in_type)
-{
-	return
-		is_integral(built_in_type) ||
-		is_decimal(built_in_type);
-}
-
-bool SemanticAnalyzer::is_integral(BuiltIn built_in_type)
-{
-	return
-		is_integer(built_in_type) ||
-		is_char(built_in_type);
-}
-
-bool SemanticAnalyzer::is_char(BuiltIn built_in_type)
-{
-	return built_in_type == BuiltIn::T_CHAR;
-}
-
-bool SemanticAnalyzer::is_integer(BuiltIn built_in_type)
-{
-	return
-		built_in_type == BuiltIn::T_I8 ||
-		built_in_type == BuiltIn::T_I16 ||
-		built_in_type == BuiltIn::T_I32;
-}
-
-bool SemanticAnalyzer::is_decimal(BuiltIn built_in_type)
-{
-	return
-		built_in_type == BuiltIn::T_F32;
-}
-
-bool SemanticAnalyzer::is_logic(BuiltIn built_in_type)
-{
-	return
-		built_in_type == BuiltIn::T_BOOL;
-}
-
-bool SemanticAnalyzer::is_void(BuiltIn built_in_type)
-{
-	return
-		built_in_type == BuiltIn::T_VOID;
-}
-
-bool SemanticAnalyzer::is_reference(BuiltIn built_in_type)
-{
-	return built_in_type == BuiltIn::T_REF;
-}
-
-bool SemanticAnalyzer::is_array(BuiltIn built_in_type)
-{
-	return built_in_type == BuiltIn::T_ARR;
-}
-
-
 void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
@@ -217,22 +144,6 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 	pt_unreachable();
 }
 
-BuiltIn SemanticAnalyzer::get_common_numeric_type(BuiltIn src, BuiltIn dst)
-{
-	//	float32
-	//	int32
-	//	int16
-	//	int8
-	//	char
-	return (BuiltIn)std::max((int)src, int(dst));
-}
-
-bool SemanticAnalyzer::is_implicit_cast(BuiltIn src_type, BuiltIn dst_type)
-{
-	// TODO
-	return false;
-}
-
 ASTExpression* SemanticAnalyzer::insert_cast_to(ASTExpression* dst_node, ASTType* src_type, ASTType* dst_type)
 {
 	if (src_type->is_equal(dst_type))
@@ -259,12 +170,9 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 	node->left->accept(this);
 	node->right->accept(this);
 
-	// node->type = new ASTTypePrimitive(BuiltIn::T_I);
-
 	BuiltIn left = node->left->type->built_in_type;
 	BuiltIn right = node->right->type->built_in_type;
 
-	// handle arithmetic operators here
 	switch (node->op.kind)
 	{
 		case TokenKind::PLUS:
@@ -348,14 +256,14 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 		}
 		case TokenKind::KW_IS:
 		{
-			if (is_reference(left) && is_reference(right))
+			if (!is_reference(left) || !is_reference(right))
 			{
 				break;
 			}
 
 			ASTType* result_type = new ASTType(BuiltIn::T_BOOL);
 			node->type = result_type;
-			return; 
+			return;
 		}
 		default:
 		{
@@ -363,28 +271,31 @@ void SemanticAnalyzer::visit(ASTExpressionBinary* node)
 		}
 	}
 
-	// handle operator overloading here
-	pt_unreachable();
-
+	pt_not_implemented();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionAssign* node)
 {
 	node->assignee->accept(this);
 	node->expr->accept(this);
-	// insert a cast node if needed
-	if (!node->expr->type->is_equal(node->assignee->type))
-	{
 
-	}
+	node->expr =
+		insert_cast_to
+		(
+			node->expr,
+			node->expr->type,
+			(ASTType*)node->assignee->type->clone()
+		);
 
-	// the node's type will always be the assignee's type
-	// node->type = (ASTType*)node->assignee->type->clone();
 	node->type = (ASTType*)node->assignee->clone();
 }
 
 void SemanticAnalyzer::visit(ASTExpressionName* node)
 {
+	node->name->accept(this);
+
+	node->type =
+		(ASTType*)((SymbolVariable*)node->name->symbol)->type->clone();
 }
 
 void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
@@ -399,7 +310,7 @@ void SemanticAnalyzer::visit(ASTDeclarationVariable* node)
 			);
 		symbol->index = crt_scope->var_index;
 		crt_scope->var_index++;
-		crt_scope->AddSymbol(symbol, node->name.buffer);
+		crt_scope->add_symbol(symbol, node->name.buffer);
 		node->symbol = symbol;
 	}
 	else

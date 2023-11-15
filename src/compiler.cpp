@@ -6,6 +6,7 @@
 		code.insert(code.end(), arr, arr + (sizeof(arr) / sizeof(arr[0]))); \
 	} \
 
+
 void Compiler::emit_pop()
 {
 	emit(Bytecode::POP);
@@ -268,20 +269,24 @@ void Compiler::visit(ASTExpressionBinary* node)
 
 void Compiler::visit(ASTExpressionAssign* node)
 {
-	//uint8_t index = 0;
-	//node->expr->accept(this);
-	//emit_dup();
-	//emit_store_local(index);
+	SymbolVariable* var_symbol = (SymbolVariable*)node->assignee->name->symbol;
+	node->expr->accept(this);
+	emit_dup();
+	emit_store(var_symbol->var_kind, var_symbol->index);
 }
 
 void Compiler::visit(ASTExpressionName* node)
 {
-
+	SymbolVariable* var_symbol = (SymbolVariable*)node->name->symbol;
+	emit_load(var_symbol->var_kind, var_symbol->index);
 }
 
 void Compiler::visit(ASTDeclarationVariable* node)
 {
-	node->expr->accept(this);
+	if (node->expr)
+	{
+		node->expr->accept(this);
+	}
 }
 
 void Compiler::visit(ASTStatementBlock* node)
@@ -290,5 +295,14 @@ void Compiler::visit(ASTStatementBlock* node)
 	{
 		node->statements[i]->accept(this);
 	}
+}
 
+void Compiler::visit(ASTStatementExpression* node)
+{
+	node->expr->accept(this);
+	if (!is_void(node->expr->type->built_in_type))
+	{
+		// we can emit a warning for discarded value here
+		emit_pop();
+	}
 }

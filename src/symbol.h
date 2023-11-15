@@ -22,8 +22,8 @@ struct Scope
 
 	Scope(ScopeKind kind);
 	~Scope();
-	bool AddSymbol(Symbol* symbol, std::string& name);
-	Symbol* GetSymbol(std::string& name);
+	bool add_symbol(Symbol* symbol, std::string& name);
+	Symbol* get_symbol(std::string& name);
 };
 
 struct Symbol : Scope
@@ -36,7 +36,7 @@ struct Symbol : Scope
 		FUNCTION,
 		VARIABLE
 	};
-	
+
 	Token name;
 	SymbolKind symbol_kind = SymbolKind::NONE;
 
@@ -64,7 +64,9 @@ struct SymbolVariable : Symbol
 		STATIC
 	};
 
-	SymbolVariable(Token name, ASTType *type);
+	VariableKind var_kind;
+
+	SymbolVariable(Token name, ASTType* type);
 	~SymbolVariable();
 };
 

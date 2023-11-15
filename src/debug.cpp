@@ -20,3 +20,4 @@ void pt_log(const char* format, ...)
 	va_end(args);
 	printf("\n");
 }
+

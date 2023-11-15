@@ -22,6 +22,7 @@ struct Compiler : Visitor
 	void visit(ASTDeclarationVariable* node) override;
 
 	void visit(ASTStatementBlock* node) override;
+	void visit(ASTStatementExpression* node) override;
 
 	void emit_pop();
 	void emit_dup();

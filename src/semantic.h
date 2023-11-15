@@ -48,23 +48,7 @@ struct SemanticAnalyzer : Visitor
 	//ASTType* resolve_un_op_built_in_type(TokenKind op, BuiltIn built_in_type);
 	//ASTType* resolve_bin_op_built_in_type(TokenKind op, BuiltIn built_in_type);
 
-	bool is_un_op_arith(TokenKind op);
-	bool is_un_op_logic(TokenKind op);
-	bool is_un_op_bitwise(TokenKind op);
-	bool is_numeric(BuiltIn built_in_type);
-	bool is_char(BuiltIn built_in_type);
-	bool is_integer(BuiltIn built_in_type);
-	bool is_integral(BuiltIn built_in_type);
-	bool is_decimal(BuiltIn built_in_type);
-	bool is_logic(BuiltIn built_in_type);
-	bool is_void(BuiltIn built_in_type);
-	bool is_reference(BuiltIn built_in_type);
-	bool is_array(BuiltIn built_in_type);
-	bool is_primitive(BuiltIn built_in_type);
 
-	bool is_implicit_cast(BuiltIn src_type, BuiltIn dst_type);
-
-	BuiltIn get_common_numeric_type(BuiltIn src, BuiltIn dst);
 
 	ASTExpression* insert_cast_to(ASTExpression* dst_node, ASTType* src_type, ASTType* dst_type);
 };

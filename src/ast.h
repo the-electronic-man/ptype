@@ -432,13 +432,48 @@ struct ASTExpressionFieldGet : ASTExpression
 	}
 };
 
+
+struct Symbol;
+
+struct ASTExpressionName : ASTExpression
+{
+	ASTName* name = nullptr;
+
+	ASTExpressionName(ASTName* name) : ASTExpression(NodeKind::EXPR_NAME)
+	{
+		this->name = name;
+		name->parent = this;
+	}
+
+	~ASTExpressionName()
+	{
+		delete name;
+	}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		ASTExpressionName* node =
+			new ASTExpressionName
+			(
+				(ASTName*)name->clone()
+			);
+		return node;
+	}
+};
+
+
 struct ASTExpressionFieldSet : ASTExpression
 {
-	ASTExpression* expr = nullptr;
+	ASTExpressionName* expr = nullptr;
 	ASTNameSimple* field = nullptr;
 	ASTExpression* value = nullptr;
 
-	ASTExpressionFieldSet(ASTExpression* expr, ASTNameSimple* field, ASTExpression* value)
+	ASTExpressionFieldSet(ASTExpressionName* expr, ASTNameSimple* field, ASTExpression* value)
 		: ASTExpression(NodeKind::EXPR_FIELD_SET)
 	{
 		this->expr = expr;
@@ -468,7 +503,7 @@ struct ASTExpressionFieldSet : ASTExpression
 		ASTExpressionFieldSet* node =
 			new ASTExpressionFieldSet
 			(
-				(ASTExpression*)expr->clone(),
+				(ASTExpressionName*)expr->clone(),
 				(ASTNameSimple*)field->clone(),
 				(ASTExpression*)value->clone()
 			);
@@ -517,11 +552,11 @@ struct ASTExpressionArrayGet : ASTExpression
 
 struct ASTExpressionArraySet : ASTExpression
 {
-	ASTExpression* expr = nullptr;
+	ASTExpressionName* expr = nullptr;
 	ASTExpression* index = nullptr;
 	ASTExpression* value = nullptr;
 
-	ASTExpressionArraySet(ASTExpression* expr, ASTExpression* index, ASTExpression* value)
+	ASTExpressionArraySet(ASTExpressionName* expr, ASTExpression* index, ASTExpression* value)
 		: ASTExpression(NodeKind::EXPR_ARRAY_SET)
 	{
 		this->expr = expr;
@@ -551,7 +586,7 @@ struct ASTExpressionArraySet : ASTExpression
 		ASTExpressionArraySet* node =
 			new ASTExpressionArraySet
 			(
-				(ASTExpression*)expr->clone(),
+				(ASTExpressionName*)expr->clone(),
 				(ASTExpression*)index->clone(),
 				(ASTExpression*)value->clone()
 			);
@@ -628,10 +663,10 @@ struct ASTExpressionCast : ASTExpression
 
 struct ASTExpressionAssign : ASTExpression
 {
-	ASTExpression* assignee = nullptr;
+	ASTExpressionName* assignee = nullptr;
 	ASTExpression* expr = nullptr;
 
-	ASTExpressionAssign(ASTExpression* assignee, ASTExpression* expr)
+	ASTExpressionAssign(ASTExpressionName* assignee, ASTExpression* expr)
 		: ASTExpression(NodeKind::EXPR_ASSIGN)
 	{
 		this->assignee = assignee;
@@ -660,41 +695,8 @@ struct ASTExpressionAssign : ASTExpression
 		ASTExpressionAssign* node =
 			new ASTExpressionAssign
 			(
-				(ASTExpression*)assignee->clone(),
+				(ASTExpressionName*)assignee->clone(),
 				(ASTExpression*)expr->clone()
-			);
-		return node;
-	}
-};
-
-struct Symbol;
-
-struct ASTExpressionName : ASTExpression
-{
-	ASTName* name = nullptr;
-
-	ASTExpressionName(ASTName* name) : ASTExpression(NodeKind::EXPR_NAME)
-	{
-		this->name = name;
-		name->parent = this;
-	}
-
-	~ASTExpressionName()
-	{
-		delete name;
-	}
-
-	void accept(Visitor* visitor) override
-	{
-		visitor->visit(this);
-	}
-
-	ASTNode* clone()
-	{
-		ASTExpressionName* node =
-			new ASTExpressionName
-			(
-				(ASTName*)name->clone()
 			);
 		return node;
 	}

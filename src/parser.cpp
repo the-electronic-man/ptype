@@ -120,19 +120,20 @@ ASTExpression* Parser::parse_expr_postfix()
 		{
 			case TokenKind::DOT:
 			{
-				(void)expect(crt_token.kind);
+				(void)expect(TokenKind::DOT);
 				Token field_name = expect(TokenKind::IDENTIFIER, "expected identifier as field name");
 				ASTNameSimple* field = new ASTNameSimple(field_name);
-				if (crt_token.kind == TokenKind::ASSIGN_DIRECT)
-				{
-					(void)expect(crt_token.kind);
-					ASTExpression* value = parse_expr_assignment();
-					node = new ASTExpressionFieldSet(node, field, value);
-				}
-				else
-				{
-					node = new ASTExpressionFieldGet(node, field);
-				}
+				node = new ASTExpressionFieldGet(node, field);
+				break;
+			}
+			case TokenKind::LEFT_BRACKET:
+			{
+				(void)expect(TokenKind::LEFT_BRACKET);
+				ASTExpression* index = parse_expr();
+				(void)expect(TokenKind::RIGHT_BRACKET, "expected ']' after index access operator");
+				Token field_name = expect(TokenKind::IDENTIFIER, "expected identifier as field name");
+				ASTNameSimple* field = new ASTNameSimple(field_name);
+				node = new ASTExpressionFieldGet(node, field);
 				break;
 			}
 			default:
@@ -198,14 +199,36 @@ ASTExpression* Parser::parse_expr_assignment()
 		Token token = expect(crt_token.kind);
 		ASTExpression* expr = parse_expr_assignment();
 
-		if (assignee->kind == NodeKind::EXPR_NAME)
+		switch (assignee->kind)
 		{
-			ASTExpressionAssign* node = new ASTExpressionAssign(assignee, expr);
-			return node;
-		}
-		else
-		{
-			pt_error("invalid assignment target");
+			case NodeKind::EXPR_NAME:
+			{
+				ASTExpressionAssign* node =
+					new ASTExpressionAssign((ASTExpressionName*)assignee, expr);
+				return node;
+			}
+			case NodeKind::EXPR_FIELD_GET:
+			{
+				ASTExpressionFieldGet* expr_field_get = (ASTExpressionFieldGet*)assignee;
+				if (expr_field_get->expr->kind != NodeKind::EXPR_NAME)
+				{
+					pt_error("field set expression does not have an expression name target");
+				}
+				ASTExpressionName* expr_field_get_expr = (ASTExpressionName*)expr_field_get->expr;
+				expr_field_get->expr = nullptr;
+				ASTNameSimple* expr_field_get_field = expr_field_get->field;
+				expr_field_get->field = nullptr;
+
+				delete expr_field_get;
+
+				ASTExpressionFieldSet* node =
+					new ASTExpressionFieldSet(expr_field_get_expr, expr_field_get_field, expr);
+				return node;
+			}
+			default:
+			{
+				pt_error("invalid assignment target: %s", node_kind_to_string(assignee->kind));
+			}
 		}
 	}
 	return assignee;

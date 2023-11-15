@@ -37,3 +37,91 @@ bool is_token_built_in_type(BuiltIn& type, TokenKind token_kind)
     }
     return false;
 }
+
+bool is_un_op_arith(TokenKind op)
+{
+    return
+        op == TokenKind::PLUS ||
+        op == TokenKind::MINUS;
+}
+
+bool is_un_op_logic(TokenKind op)
+{
+    return op == TokenKind::KW_NOT;
+}
+
+bool is_un_op_bitwise(TokenKind op)
+{
+    return op == TokenKind::TILDE;
+}
+
+bool is_numeric(BuiltIn built_in_type)
+{
+    return
+        is_integral(built_in_type) ||
+        is_decimal(built_in_type);
+}
+
+bool is_integral(BuiltIn built_in_type)
+{
+    return
+        is_integer(built_in_type) ||
+        is_char(built_in_type);
+}
+
+bool is_char(BuiltIn built_in_type)
+{
+    return built_in_type == BuiltIn::T_CHAR;
+}
+
+bool is_integer(BuiltIn built_in_type)
+{
+    return
+        built_in_type == BuiltIn::T_I8 ||
+        built_in_type == BuiltIn::T_I16 ||
+        built_in_type == BuiltIn::T_I32;
+}
+
+bool is_decimal(BuiltIn built_in_type)
+{
+    return
+        built_in_type == BuiltIn::T_F32;
+}
+
+bool is_logic(BuiltIn built_in_type)
+{
+    return
+        built_in_type == BuiltIn::T_BOOL;
+}
+
+bool is_void(BuiltIn built_in_type)
+{
+    return
+        built_in_type == BuiltIn::T_VOID;
+}
+
+bool is_reference(BuiltIn built_in_type)
+{
+    return built_in_type == BuiltIn::T_REF;
+}
+
+bool is_array(BuiltIn built_in_type)
+{
+    return built_in_type == BuiltIn::T_ARR;
+}
+
+BuiltIn get_common_numeric_type(BuiltIn src, BuiltIn dst)
+{
+    //	float32
+    //	int32
+    //	int16
+    //	int8
+    //	char
+    return (BuiltIn)std::max((int)src, int(dst));
+}
+
+bool is_implicit_cast(BuiltIn src_type, BuiltIn dst_type)
+{
+    // TODO
+    return false;
+}

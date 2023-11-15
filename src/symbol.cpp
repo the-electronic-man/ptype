@@ -13,7 +13,7 @@ Scope::~Scope()
 	}
 }
 
-bool Scope::AddSymbol(Symbol* symbol, std::string& name)
+bool Scope::add_symbol(Symbol* symbol, std::string& name)
 {
 	if (symbol == nullptr)
 	{
@@ -29,7 +29,7 @@ bool Scope::AddSymbol(Symbol* symbol, std::string& name)
 	return false;
 }
 
-Symbol* Scope::GetSymbol(std::string& name)
+Symbol* Scope::get_symbol(std::string& name)
 {
 	auto it = symbols.find(name);
 	if (it != symbols.end())
@@ -40,7 +40,7 @@ Symbol* Scope::GetSymbol(std::string& name)
 }
 
 SymbolVariable::SymbolVariable(Token name, ASTType* type)
-		: Symbol(name, SymbolKind::VARIABLE, ScopeKind::NONE)
+	: Symbol(name, SymbolKind::VARIABLE, ScopeKind::NONE)
 {
 	this->type = type;
 }

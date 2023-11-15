@@ -288,6 +288,16 @@ Token Lexer::get_token_raw()
 				advance();
 				return Token(TokenKind::RIGHT_PAREN);
 			}
+			case '[':
+			{
+				advance();
+				return Token(TokenKind::LEFT_BRACKET);
+			}
+			case ']':
+			{
+				advance();
+				return Token(TokenKind::RIGHT_BRACKET);
+			}
 			case '.':
 			{
 				advance();
