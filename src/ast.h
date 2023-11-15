@@ -13,7 +13,7 @@
 #define ENUM_ITEM(name, str) name,
 enum class NodeKind
 {
-#include "ast_kind.enum"
+#include "ast.enum"
 };
 const char* node_kind_to_string(NodeKind kind);
 

@@ -8,7 +8,7 @@ const char* node_kind_to_string(NodeKind kind)
 {
 	switch (kind)
 	{
-#include "ast_kind.enum"
+#include "ast.enum"
 		default: return "undefined";
 	}
 }

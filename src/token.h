@@ -11,7 +11,7 @@
 
 enum class TokenKind : int32_t
 {
-#include "token_kind.enum"
+#include "token.enum"
 };
 
 const char* token_kind_to_string(TokenKind kind);
