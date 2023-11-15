@@ -75,30 +75,33 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 		case TokenKind::PLUS:
 		case TokenKind::MINUS:
 		{
-			if (is_numeric(built_in_type))
+			if (!is_numeric(built_in_type))
 			{
-				node->type = new ASTType(built_in_type);
-				return;
+				break;
 			}
-			break;
+
+			node->type = new ASTType(built_in_type);
+			return;
 		}
 		case TokenKind::KW_NOT:
 		{
-			if (is_logic(built_in_type))
+			if (!is_logic(built_in_type))
 			{
-				node->type = new ASTType(BuiltIn::T_BOOL);
-				return;
+				break;
 			}
-			break;
+
+			node->type = new ASTType(BuiltIn::T_BOOL);
+			return;
 		}
 		case TokenKind::TILDE:
 		{
 			if (is_integral(built_in_type))
 			{
-				node->type = new ASTType(built_in_type);
-				return;
+				break;
 			}
-			break;
+
+			node->type = new ASTType(built_in_type);
+			return;
 		}
 		default:
 		{
@@ -114,7 +117,17 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 	// TODO : replace with a function call
 	// node->parent->replace_child(node, nullptr);
 
-	pt_unreachable();
+	if (!is_reference(built_in_type))
+	{
+		pt_error
+		(
+			"invalid argument type '%s' to unary operator '%s'",
+			built_in_to_string(built_in_type),
+			reserved_operators.at(node->op.kind).data()
+		);
+	}
+
+	pt_not_implemented();
 }
 
 ASTExpression* SemanticAnalyzer::insert_cast_to(ASTExpression* dst_node, ASTType* src_type, ASTType* dst_type)

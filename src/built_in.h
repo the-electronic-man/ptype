@@ -1,6 +1,7 @@
 #pragma once
 #include "token.h"
 #include <unordered_map>
+#include <vector>
 
 #ifdef ENUM_ITEM
 #undef ENUM_ITEM

@@ -55,6 +55,14 @@ bool is_un_op_bitwise(TokenKind op)
     return op == TokenKind::TILDE;
 }
 
+bool is_primitive(BuiltIn built_in_type)
+{
+    return
+        is_void(built_in_type) ||
+        is_numeric(built_in_type) ||
+        is_logic(built_in_type);
+}
+
 bool is_numeric(BuiltIn built_in_type)
 {
     return
@@ -122,6 +130,34 @@ BuiltIn get_common_numeric_type(BuiltIn src, BuiltIn dst)
 
 bool is_implicit_cast(BuiltIn src_type, BuiltIn dst_type)
 {
-    // TODO
-    return false;
+    if (!is_numeric(src_type) || !is_numeric(dst_type))
+    {
+        return false;
+    }
+
+    // ENUM_ITEM(T_VOID, "void") \
+    // ENUM_ITEM(T_BOOL, "bool") \
+    // ENUM_ITEM(T_CHAR, "char") \
+    // ENUM_ITEM(T_I8, "i8") \
+    // ENUM_ITEM(T_I16, "i16") \
+    // ENUM_ITEM(T_I32, "i32") \
+    // ENUM_ITEM(T_F32, "f32") \
+    // ENUM_ITEM(T_ARR, "array") \
+    // ENUM_ITEM(T_REF, "ref") \
+        
+    static const std::vector<std::vector<bool>> implicit_cast_map =
+    {
+        // src\dst      void    bool    char    i8      i16     i32     f32     arr     ref
+        /* void */  {   1,      0,      0,      0,      0,      0,      0,      0,      0   },
+        /* bool */  {   0,      1,      0,      0,      0,      0,      0,      0,      0   },
+        /* char */  {   0,      0,      1,      1,      1,      1,      1,      0,      0   },
+        /* i8   */  {   0,      0,      0,      1,      1,      1,      1,      0,      0   },
+        /* i16  */  {   0,      0,      0,      0,      1,      1,      1,      0,      0   },
+        /* i32  */  {   0,      0,      0,      0,      0,      1,      1,      0,      0   },
+        /* f32  */  {   0,      0,      0,      0,      0,      0,      1,      0,      0   },
+        /* arr  */  {   0,      0,      0,      0,      0,      0,      0,      0,      0   },
+        /* ref  */  {   0,      0,      0,      0,      0,      0,      0,      0,      0   },
+    };
+
+    return implicit_cast_map[(size_t)src_type][(size_t)dst_type];
 }

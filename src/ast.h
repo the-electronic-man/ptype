@@ -139,7 +139,26 @@ struct ASTType : ASTNode
 
 	bool is_equal(ASTType* other)
 	{
-		return kind == other->kind;
+		if (built_in_type != other->built_in_type)
+		{
+			return false;
+		}
+
+		switch (built_in_type)
+		{
+			case BuiltIn::T_ARR:
+			{
+				return subtype->is_equal(other);
+			}
+			case BuiltIn::T_REF:
+			{
+				return name->symbol == other->name->symbol;
+			}
+			default:
+			{
+				return true;
+			}
+		}
 	}
 
 	void accept(Visitor* visitor) override

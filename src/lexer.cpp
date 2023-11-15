@@ -273,10 +273,15 @@ Token Lexer::get_token_raw()
 					}
 					default:
 					{
-						pt_error("unknown symbol: %c", ch);
+						pt_error("unknown symbol: !%c", ch);
 						break;
 					}
 				}
+			}
+			case '~':
+			{
+				advance();
+				return Token(TokenKind::TILDE);
 			}
 			case '(':
 			{

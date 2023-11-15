@@ -11,7 +11,7 @@ const char* token_kind_to_string(TokenKind kind)
 {
 	switch (kind)
 	{
-#include "token_kind.enum"
+#include "token.enum"
 		default: return "undefined";
 	}
 }
@@ -33,6 +33,32 @@ const std::unordered_map<std::string, TokenKind> reserved_keywords =
 	/* { "i64", TokenKind::KW_INT64 }, */
 	{ "f32", TokenKind::KW_FLOAT32 },
 	/* { "f64", TokenKind::KW_FLOAT64 }, */
+};
+
+const std::unordered_map<TokenKind, std::string> reserved_operators =
+{
+	{ TokenKind::PLUS, 						"+" },
+	{ TokenKind::MINUS, 					"-" },
+	{ TokenKind::STAR, 						"*" },
+	{ TokenKind::SLASH, 					"/" },
+	{ TokenKind::PERCENT, 					"%" },
+
+	{ TokenKind::LEFT_ANGLE, 				"<" },
+	{ TokenKind::LEFT_ANGLE_EQUAL, 			"<=" },
+	{ TokenKind::RIGHT_ANGLE, 				">" },
+	{ TokenKind::RIGHT_ANGLE_EQUAL,			">=" },
+	{ TokenKind::EQUAL, 					"==" },
+	{ TokenKind::NOT_EQUAL, 				"!=" },
+
+	{ TokenKind::KW_AND, 					"and" },
+	{ TokenKind::KW_OR, 					"or" },
+	{ TokenKind::KW_NOT, 					"not" },
+
+	{ TokenKind::AMPERSAND,					"&" },
+	{ TokenKind::CARET, 					"^" },
+	{ TokenKind::VERTICAL_BAR, 				"|" },
+	{ TokenKind::LEFT_ANGLE_LEFT_ANGLE,		"<<" },
+	{ TokenKind::RIGHT_ANGLE_RIGHT_ANGLE,	">>" },
 };
 
 Token::Token()
