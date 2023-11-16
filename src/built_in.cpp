@@ -79,7 +79,8 @@ bool is_integral(BuiltIn built_in_type)
 
 bool is_char(BuiltIn built_in_type)
 {
-    return built_in_type == BuiltIn::T_CHAR;
+    return
+        built_in_type == BuiltIn::T_CHAR;
 }
 
 bool is_integer(BuiltIn built_in_type)

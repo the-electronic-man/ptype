@@ -12,8 +12,7 @@
 	std::vector<std::pair<std::string, std::string>> attributes = ATTRIBUTES; \
 	for (size_t i = 0; i < attributes.size(); i++) \
 	{ \
-		output_file << " "; \
-		output_file << attributes[i].first << "=\"" << attributes[i].second << "\""; \
+		output_file << " " << attributes[i].first << "=\"" << attributes[i].second << "\""; \
 	} \
 	output_file << ">\n"; \
 	increase_ident(); \
@@ -209,9 +208,9 @@ void TreePrinter::visit(ASTStatementBlock* node)
 	XML_PRINT_ELEMENT
 	(
 		node_kind_to_string(node->kind),
-		for (size_t i = 0; i < node->statements.size(); i++)
+		for (size_t i = 0; i < node->declarations.size(); i++)
 		{
-			node->statements[i]->accept(this);
+			node->declarations[i]->accept(this);
 		}
 	)
 }

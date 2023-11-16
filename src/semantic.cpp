@@ -57,6 +57,17 @@ void SemanticAnalyzer::visit(ASTExpressionLiteral* node)
 			node->type = new ASTType(BuiltIn::T_F32);
 			break;
 		}
+		case TokenKind::LITERAL_CHAR:
+		{
+			node->type = new ASTType(BuiltIn::T_CHAR);
+			break;
+		}
+		case TokenKind::LITERAL_TRUE:
+		case TokenKind::LITERAL_FALSE:
+		{
+			node->type = new ASTType(BuiltIn::T_BOOL);
+			break;
+		}
 		default:
 		{
 			break;
@@ -95,7 +106,7 @@ void SemanticAnalyzer::visit(ASTExpressionUnary* node)
 		}
 		case TokenKind::TILDE:
 		{
-			if (is_integral(built_in_type))
+			if (!is_integral(built_in_type))
 			{
 				break;
 			}
@@ -332,8 +343,8 @@ void SemanticAnalyzer::visit(ASTStatementBlock* node)
 		node->scope = new Scope(Scope::ScopeKind::BLOCK);
 	}
 
-	for (size_t i = 0; i < node->statements.size(); i++)
+	for (size_t i = 0; i < node->declarations.size(); i++)
 	{
-		node->statements[i]->accept(this);
+		node->declarations[i]->accept(this);
 	}
 }

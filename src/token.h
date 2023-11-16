@@ -24,7 +24,6 @@ struct Token
 	TokenKind kind;
 	size_t line = 1, column = 1;
 	std::string buffer;
-
 	Token();
 	Token(TokenKind kind);
 	Token(TokenKind kind, char* buffer, size_t buffer_length);

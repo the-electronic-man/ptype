@@ -86,22 +86,24 @@ struct ASTNode
 	virtual ASTNode* clone() = 0;
 };
 
-struct ASTStatement : ASTNode
-{
-	ASTStatement(NodeKind kind) : ASTNode(kind) {}
-};
-
-
-struct ASTDeclaration : ASTStatement
+struct ASTDeclaration : ASTNode
 {
 	Token name;
 	Symbol* symbol = nullptr;
 
-	ASTDeclaration(Token name, NodeKind kind) : ASTStatement(kind)
+	ASTDeclaration(Token name, NodeKind kind) : ASTNode(kind)
 	{
 		this->name = name;
 	}
+
+	ASTDeclaration(NodeKind kind) : ASTNode(kind) {}
 };
+
+struct ASTStatement : ASTDeclaration
+{
+	ASTStatement(NodeKind kind) : ASTDeclaration(kind) {}
+};
+
 
 struct ASTName : ASTNode
 {
@@ -776,23 +778,23 @@ struct ASTStatementBlock : ASTStatement
 {
 	Scope* scope = nullptr;
 	int32_t var_index = 0;
-	std::vector<ASTStatement*> statements;
+	std::vector<ASTDeclaration*> declarations;
 
-	ASTStatementBlock(std::vector<ASTStatement*>& statements)
+	ASTStatementBlock(std::vector<ASTDeclaration*>& declarations)
 		: ASTStatement(NodeKind::STMT_BLOCK)
 	{
-		this->statements = statements;
-		for (size_t i = 0; i < statements.size(); i++)
+		this->declarations = declarations;
+		for (size_t i = 0; i < declarations.size(); i++)
 		{
-			this->statements[i]->parent = this;
+			this->declarations[i]->parent = this;
 		}
 	}
 
 	~ASTStatementBlock()
 	{
-		for (size_t i = 0; i < statements.size(); i++)
+		for (size_t i = 0; i < declarations.size(); i++)
 		{
-			delete statements[i];
+			delete declarations[i];
 		}
 
 		delete scope;
@@ -806,16 +808,16 @@ struct ASTStatementBlock : ASTStatement
 
 	ASTNode* clone()
 	{
-		std::vector<ASTStatement*> cloned_statements;
-		for (size_t i = 0; i < statements.size(); i++)
+		std::vector<ASTDeclaration*> cloned_declarations;
+		for (size_t i = 0; i < declarations.size(); i++)
 		{
-			cloned_statements.push_back((ASTStatement*)statements[i]->clone());
+			cloned_declarations.push_back((ASTStatement*)declarations[i]->clone());
 		}
 
 		ASTStatementBlock* node =
 			new ASTStatementBlock
 			(
-				cloned_statements
+				cloned_declarations
 			);
 		return node;
 	}

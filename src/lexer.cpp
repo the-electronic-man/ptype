@@ -68,6 +68,17 @@
 	case '8': \
 	case '9' \
 
+#define pt_switch_case_non_zero_digit \
+	case '1': \
+	case '2': \
+	case '3': \
+	case '4': \
+	case '5': \
+	case '6': \
+	case '7': \
+	case '8': \
+	case '9' \
+
 #define pt_switch_case_alpha \
 	pt_switch_case_letter_lower: \
 	pt_switch_case_letter_upper
@@ -86,6 +97,8 @@
 
 void Lexer::update_cursor_position()
 {
+	if (ch == '\r') return;
+
 	if (ch == '\n')
 	{
 		column = 1;
@@ -159,6 +172,50 @@ Token Lexer::get_number()
 	return Token(kind, buffer + it_begin, it_end - it_begin);
 }
 
+char Lexer::peek(size_t offset)
+{
+	size_t index = position + offset;
+	if (index < buffer_length)
+	{
+		return buffer[index];
+	}
+	else
+	{
+		return '\0';
+	}
+}
+
+void Lexer::skip_line_comment()
+{
+	while (ch != '\n' && ch != '\0')
+	{
+		advance();
+	}
+}
+
+void Lexer::skip_block_comment()
+{
+	while (ch != '\0' && (ch != '*' || peek() != '/'))
+	{
+		advance();
+	}
+	advance();
+	advance();
+}
+
+Token Lexer::get_char()
+{
+	advance(); // skip '\''
+	advance();
+	char token_ch = ch;
+	if (ch != '\'')
+	{
+		pt_error("expected single-quote \"'\" after literal char");
+	}
+	advance();
+	return Token(TokenKind::LITERAL_CHAR, std::to_string(token_ch));
+}
+
 Token Lexer::get_token_raw()
 {
 	while (ch != '\0')
@@ -178,6 +235,25 @@ Token Lexer::get_token_raw()
 			{
 				return get_number();
 			}
+			case '\'':
+			{
+				return get_char();
+			}
+			case '&':
+			{
+				advance();
+				return Token(TokenKind::AMPERSAND);
+			}
+			case '^':
+			{
+				advance();
+				return Token(TokenKind::CARET);
+			}
+			case '|':
+			{
+				advance();
+				return Token(TokenKind::VERTICAL_BAR);
+			}
 			case '+':
 			{
 				advance();
@@ -196,7 +272,26 @@ Token Lexer::get_token_raw()
 			case '/':
 			{
 				advance();
-				return Token(TokenKind::SLASH);
+				switch (ch)
+				{
+					case '/':
+					{
+						advance();
+						skip_line_comment();
+						break;
+					}
+					case '*':
+					{
+						advance();
+						skip_block_comment();
+						break;
+					}
+					default:
+					{
+						return Token(TokenKind::SLASH);
+					}
+				}
+				break;
 			}
 			case '%':
 			{
@@ -273,8 +368,7 @@ Token Lexer::get_token_raw()
 					}
 					default:
 					{
-						pt_error("unknown symbol: !%c", ch);
-						break;
+						return Token(TokenKind::ERROR, std::to_string(ch));
 					}
 				}
 			}
@@ -325,7 +419,9 @@ Token Lexer::get_token_raw()
 			}
 			default:
 			{
-				pt_error("unknown symbol: %c", ch);
+				char error_ch = ch;
+				advance();
+				return Token(TokenKind::ERROR, std::to_string(error_ch));
 			}
 		}
 	}
@@ -346,7 +442,6 @@ void Lexer::get_token_list(std::vector<Token>& token_list, char* buffer, size_t 
 	this->buffer_length = buffer_length;
 	this->ch = buffer[0];
 	this->position = 0;
-	update_cursor_position();
 
 	Token token;
 	do

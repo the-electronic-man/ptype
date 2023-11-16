@@ -87,11 +87,14 @@ void Compiler::emit_arith_bin_op_i(TokenKind op)
 	Bytecode inst;
 	switch (op)
 	{
-		case TokenKind::PLUS:		inst = Bytecode::ADD_I; break;
-		case TokenKind::MINUS:		inst = Bytecode::SUB_I; break;
-		case TokenKind::STAR:		inst = Bytecode::MUL_I; break;
-		case TokenKind::SLASH:		inst = Bytecode::DIV_I; break;
-		case TokenKind::PERCENT:	inst = Bytecode::MOD_I; break;
+		case TokenKind::PLUS:			inst = Bytecode::ADD_I; break;
+		case TokenKind::MINUS:			inst = Bytecode::SUB_I; break;
+		case TokenKind::STAR:			inst = Bytecode::MUL_I; break;
+		case TokenKind::SLASH:			inst = Bytecode::DIV_I; break;
+		case TokenKind::PERCENT:		inst = Bytecode::MOD_I; break;
+		case TokenKind::AMPERSAND:		inst = Bytecode::AND_I; break;
+		case TokenKind::CARET:			inst = Bytecode::XOR_I; break;
+		case TokenKind::VERTICAL_BAR:	inst = Bytecode::OR_I; break;
 		default:					pt_unreachable();
 	}
 	emit(inst);
@@ -142,6 +145,7 @@ void Compiler::emit_arith_un_op_i(TokenKind op)
 	{
 		case TokenKind::PLUS:		/* nothing to do */ break;
 		case TokenKind::MINUS:		emit(Bytecode::NEG_I); break;
+		case TokenKind::TILDE:		emit(Bytecode::COMPL_I); break;
 		default:					pt_unreachable();
 	}
 }
@@ -160,6 +164,7 @@ void Compiler::emit_arith_un_op(BuiltIn built_in_type, TokenKind op)
 {
 	switch (built_in_type)
 	{
+		case BuiltIn::T_CHAR:
 		case BuiltIn::T_I8:
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
@@ -193,6 +198,8 @@ void Compiler::emit_convert(BuiltIn src, BuiltIn dst)
 			emit(Bytecode::I2F);
 			break;
 		}
+		case BuiltIn::T_BOOL:
+		case BuiltIn::T_CHAR:
 		case BuiltIn::T_I8:
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
@@ -219,7 +226,7 @@ void Compiler::disassemble()
 		Bytecode inst = (Bytecode)code[i];
 		size_t operand_count = bytecode_operand_count(inst);
 		const char* mnemonic = bytecode_to_string(inst);
-		printf("%llu\t%s\t", i, mnemonic);
+		printf("%04llu\t%s\t", i, mnemonic);
 		for (size_t j = 0; j < operand_count; j++)
 		{
 			printf("%d\t", code[i + 1 + j]);
@@ -247,6 +254,16 @@ void Compiler::visit(ASTExpressionLiteral* node)
 	union { int32_t i32; float f32; } extract;
 	switch (node->type->built_in_type)
 	{
+		case BuiltIn::T_BOOL:
+		{
+			extract.i32 = node->token.kind == TokenKind::LITERAL_TRUE;
+			break;
+		}
+		case BuiltIn::T_CHAR:
+		{
+			extract.i32 = (int32_t)node->token.buffer[0];
+			break;
+		}
 		case BuiltIn::T_I8:
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
@@ -306,9 +323,9 @@ void Compiler::visit(ASTDeclarationVariable* node)
 
 void Compiler::visit(ASTStatementBlock* node)
 {
-	for (size_t i = 0; i < node->statements.size(); i++)
+	for (size_t i = 0; i < node->declarations.size(); i++)
 	{
-		node->statements[i]->accept(this);
+		node->declarations[i]->accept(this);
 	}
 }
 

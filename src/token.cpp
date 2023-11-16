@@ -25,6 +25,8 @@ const std::unordered_map<std::string, TokenKind> reserved_keywords =
 	{ "not", TokenKind::KW_NOT },
 	{ "is", TokenKind::KW_IS },
 	{ "null", TokenKind::LITERAL_NULL },
+	{ "true", TokenKind::LITERAL_TRUE },
+	{ "false", TokenKind::LITERAL_FALSE },
 	{ "bool", TokenKind::KW_BOOL },
 	{ "char", TokenKind::KW_CHAR },
 	{ "i8", TokenKind::KW_INT8 },
@@ -57,13 +59,14 @@ const std::unordered_map<TokenKind, std::string> reserved_operators =
 	{ TokenKind::AMPERSAND,					"&" },
 	{ TokenKind::CARET, 					"^" },
 	{ TokenKind::VERTICAL_BAR, 				"|" },
+	{ TokenKind::TILDE, 					"~" },
 	{ TokenKind::LEFT_ANGLE_LEFT_ANGLE,		"<<" },
 	{ TokenKind::RIGHT_ANGLE_RIGHT_ANGLE,	">>" },
 };
 
 Token::Token()
 {
-	this->kind = TokenKind::NONE;
+	this->kind = TokenKind::ERROR;
 	this->buffer = "";
 }
 

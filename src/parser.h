@@ -12,9 +12,12 @@ struct Parser
 
 	Parser();
 
-	Token expect(TokenKind expected_token_kind, const char* msg = "generic invalid token");
+	Token expect(TokenKind expected_token_kind);
 
 	ASTNode* parse(Token* token_list, size_t token_count);
+
+	void error(const char* format, ...);
+	//void synchronize();
 
 	ASTType* parse_type();
 
@@ -35,10 +38,11 @@ struct Parser
 	ASTExpression* parse_expr_call();
 	ASTExpression* parse_expr();
 
-	ASTStatement* parse_stmt();
+	ASTDeclaration* parse_stmt();
 	ASTStatement* parse_stmt_expr();
 	ASTStatement* parse_stmt_block();
 
+	ASTDeclaration* parse_decl();
 	ASTDeclaration* parse_decl_var();
 	ASTDeclaration* parse_decl_param();
 };

@@ -19,6 +19,7 @@ ENUM_ITEM(DIV_I, "div.i", 0, -1) \
 ENUM_ITEM(MOD_I, "mod.i", 0, -1) \
 /* int unary arithmetic */ \
 ENUM_ITEM(NEG_I, "neg.i", 0, 0) \
+ENUM_ITEM(COMPL_I, "compl.i", 0, 0) \
 ENUM_ITEM(INC_I, "inc.i", 0, 0) \
 /* conversion */ \
 ENUM_ITEM(I2C, "i2c", 0, 0) \

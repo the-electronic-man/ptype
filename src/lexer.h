@@ -17,8 +17,15 @@ struct Lexer
 	void advance();
 	Token get_identifier();
 	Token get_number();
+	Token get_char();
+	Token get_string();
 	Token get_token_raw();
 	Token get_token();
+
+	char peek(size_t offset = 1);
+
+	void skip_line_comment();
+	void skip_block_comment();
 	void update_cursor_position();
 	void get_token_list(std::vector<Token>& token_list, char* buffer, size_t buffer_length);
 };
