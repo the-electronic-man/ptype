@@ -1,13 +1,41 @@
-/*        op            */
+/*        op        name        operands    stack         */
 ENUM_ITEM(NOP, "nop", 0, 0) \
-/* stack operations */ \
-ENUM_ITEM(LD_IMM, "ld.imm", 4, 1) \
-ENUM_ITEM(LD_CST, "ld.cst", 1, 1) \
+/* load int const */ \
+ENUM_ITEM(LD_I4_M1, "ld.i4.m1", 0, 1) \
+ENUM_ITEM(LD_I4_0, "ld.i4.0", 0, 1) \
+ENUM_ITEM(LD_I4_1, "ld.i4.1", 0, 1) \
+ENUM_ITEM(LD_I4_2, "ld.i4.2", 0, 1) \
+ENUM_ITEM(LD_I4_3, "ld.i4.3", 0, 1) \
+ENUM_ITEM(LD_I4_4, "ld.i4.4", 0, 1) \
+ENUM_ITEM(LD_I4_5, "ld.i4.5", 0, 1) \
+ENUM_ITEM(LD_I4_6, "ld.i4.6", 0, 1) \
+ENUM_ITEM(LD_I4_7, "ld.i4.7", 0, 1) \
+ENUM_ITEM(LD_I4_8, "ld.i4.8", 0, 1) \
+ENUM_ITEM(LD_I4, "ld.i4", 4, 1) \
+/* load float const */ \
+ENUM_ITEM(LD_F4_M1, "ld.f4.m1", 0, 1) \
+ENUM_ITEM(LD_F4_0, "ld.f4.0", 0, 1) \
+ENUM_ITEM(LD_F4_1, "ld.f4.1", 0, 1) \
+ENUM_ITEM(LD_F4, "ld.f4", 4, 1) \
+/* load from local */ \
+ENUM_ITEM(LD_LOC_0, "ld.loc.0", 0, 1) \
+ENUM_ITEM(LD_LOC_1, "ld.loc.1", 0, 1) \
+ENUM_ITEM(LD_LOC_2, "ld.loc.2", 0, 1) \
+ENUM_ITEM(LD_LOC_4, "ld.loc.3", 0, 1) \
 ENUM_ITEM(LD_LOC, "ld.loc", 1, 1) \
+/* load from array */ \
 ENUM_ITEM(LD_ARR, "ld.arr", 1, 1) \
+/* load field */ \
 ENUM_ITEM(LD_FLD, "ld.fld", 1, 1) \
+/* store local */ \
+ENUM_ITEM(ST_LOC_0, "st.loc.0", 0, -1) \
+ENUM_ITEM(ST_LOC_1, "st.loc.1", 0, -1) \
+ENUM_ITEM(ST_LOC_2, "st.loc.2", 0, -1) \
+ENUM_ITEM(ST_LOC_3, "st.loc.3", 0, -1) \
 ENUM_ITEM(ST_LOC, "st.loc", 1, -1) \
+/* store in array */ \
 ENUM_ITEM(ST_ARR, "st.arr", 1, -1) \
+/* load in field */ \
 ENUM_ITEM(ST_FLD, "st.fld", 1, -1) \
 ENUM_ITEM(POP, "pop", 0, -1) \
 ENUM_ITEM(DUP, "dup", 0, 1) \
@@ -40,33 +68,35 @@ ENUM_ITEM(DIV_F, "div.f", 0, -1) \
 ENUM_ITEM(MOD_F, "mod.f", 0, -1) \
 /* float unary arithmetic */ \
 ENUM_ITEM(NEG_F, "neg.f", 0, 0) \
-/* comparison with 0 */ \
-ENUM_ITEM(BRZ_EQ, "brz.eq", 4, -1) \
-ENUM_ITEM(BRZ_NE, "brz.ne", 4, -1) \
-ENUM_ITEM(BRZ_LT, "brz.lt", 4, -1) \
-ENUM_ITEM(BRZ_LE, "brz.le", 4, -1) \
-ENUM_ITEM(BRZ_GT, "brz.gt", 4, -1) \
-ENUM_ITEM(BRZ_GE, "brz.ge", 4, -1) \
+/* conditional jump with 0 */ \
+ENUM_ITEM(JEQ_Z, "jeq.z", 4, -1) \
+ENUM_ITEM(JNE_Z, "jne.z", 4, -1) \
+ENUM_ITEM(JLT_Z, "jlt.z", 4, -1) \
+ENUM_ITEM(JLE_Z, "jle.z", 4, -1) \
+ENUM_ITEM(JGT_Z, "jgt.z", 4, -1) \
+ENUM_ITEM(JGE_Z, "jge.z", 4, -1) \
+/* unconditional jump */ \
+ENUM_ITEM(JUMP, "jump", 4, -1) \
 /* comparison with 2 ints */ \
-ENUM_ITEM(BR_EQ, "br.eq", 4, -2) \
-ENUM_ITEM(BR_NE, "br.ne", 4, -2) \
-ENUM_ITEM(BR_LT, "br.lt", 4, -2) \
-ENUM_ITEM(BR_LE, "br.le", 4, -2) \
-ENUM_ITEM(BR_GT, "br.gt", 4, -2) \
-ENUM_ITEM(BR_GE, "br.ge", 4, -2) \
+ENUM_ITEM(JEQ, "jeq", 4, -2) \
+ENUM_ITEM(JNE, "jne", 4, -2) \
+ENUM_ITEM(JLT, "jlt", 4, -2) \
+ENUM_ITEM(JLE, "jle", 4, -2) \
+ENUM_ITEM(JGT, "jgt", 4, -2) \
+ENUM_ITEM(JGE, "jge", 4, -2) \
 /* comparison with 0 */ \
-ENUM_ITEM(CMPZ_EQ, "cmpz.eq", 4, 0) \
-ENUM_ITEM(CMPZ_NE, "cmpz.ne", 4, 0) \
-ENUM_ITEM(CMPZ_LT, "cmpz.lt", 4, 0) \
-ENUM_ITEM(CMPZ_LE, "cmpz.le", 4, 0) \
-ENUM_ITEM(CMPZ_GT, "cmpz.gt", 4, 0) \
-ENUM_ITEM(CMPZ_GE, "cmpz.ge", 4, 0) \
+ENUM_ITEM(CEQ_Z, "ceq.z", 4, 0) \
+ENUM_ITEM(CNE_Z, "cne.z", 4, 0) \
+ENUM_ITEM(CLT_Z, "clt.z", 4, 0) \
+ENUM_ITEM(CLE_Z, "cle.z", 4, 0) \
+ENUM_ITEM(CGT_Z, "cgt.z", 4, 0) \
+ENUM_ITEM(CGE_Z, "cge.z", 4, 0) \
 /* comparison with 2 ints */ \
-ENUM_ITEM(CMP_EQ, "cmp.eq", 4, -1) \
-ENUM_ITEM(CMP_NE, "cmp.ne", 4, -1) \
-ENUM_ITEM(CMP_LT, "cmp.lt", 4, -1) \
-ENUM_ITEM(CMP_LE, "cmp.le", 4, -1) \
-ENUM_ITEM(CMP_GT, "cmp.gt", 4, -1) \
-ENUM_ITEM(CMP_GE, "cmp.ge", 4, -1) \
+ENUM_ITEM(CEQ, "ceq", 4, -1) \
+ENUM_ITEM(CNE, "cne", 4, -1) \
+ENUM_ITEM(CLT, "clt", 4, -1) \
+ENUM_ITEM(CLE, "cle", 4, -1) \
+ENUM_ITEM(CGT, "cgt", 4, -1) \
+ENUM_ITEM(CGE, "cge", 4, -1) \
 /* other */ \
 ENUM_ITEM(HALT, "halt", 0, 0) \

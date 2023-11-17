@@ -3,7 +3,7 @@
 #define emit(x, ...) \
 	{ \
 		uint8_t arr[] = { (uint8_t)(x), __VA_ARGS__ }; \
-		code.insert(code.end(), arr, arr + (sizeof(arr) / sizeof(arr[0]))); \
+		code.insert(code.end(), arr, arr + (sizeof(arr) / sizeof(*arr))); \
 	} \
 
 
@@ -17,9 +17,64 @@ void Compiler::emit_dup()
 	emit(Bytecode::DUP);
 }
 
-void Compiler::emit_load_const(uint8_t value)
+void Compiler::emit_load_const_i(int32_t value)
 {
-	emit(Bytecode::LD_CST, value);
+	if (value >= -1 && value <= 8)
+	{
+		emit((Bytecode)((int)Bytecode::LD_I4_0 + (int)value));
+		return;
+	}
+
+	union
+	{
+		int32_t xi;
+		float xf;
+		uint8_t xa[4];
+	} convert;
+	convert.xi = value;
+	emit
+	(
+		Bytecode::LD_I4,
+		convert.xa[0],
+		convert.xa[1],
+		convert.xa[2],
+		convert.xa[3]
+	);
+
+}
+
+void Compiler::emit_load_const_f(float value)
+{
+	if (value == -1.0f)
+	{
+		emit(Bytecode::LD_F4_M1);
+		return;
+	}
+	else if (value == 0.0f)
+	{
+		emit(Bytecode::LD_F4_0);
+		return;
+	}
+	else if (value == 1.0f)
+	{
+		emit(Bytecode::LD_F4_1);
+		return;
+	}
+	union
+	{
+		int32_t xi;
+		float xf;
+		uint8_t xa[4];
+	} convert;
+	convert.xf = value;
+	emit
+	(
+		Bytecode::LD_F4,
+		convert.xa[0],
+		convert.xa[1],
+		convert.xa[2],
+		convert.xa[3]
+	);
 }
 
 void Compiler::emit_load(SymbolVariable::VariableKind kind, uint8_t index)
@@ -82,7 +137,7 @@ void Compiler::emit_store(SymbolVariable::VariableKind kind, uint8_t index)
 	}
 }
 
-void Compiler::emit_arith_bin_op_i(TokenKind op)
+void Compiler::emit_bin_op_arith_i(TokenKind op)
 {
 	Bytecode inst;
 	switch (op)
@@ -100,7 +155,7 @@ void Compiler::emit_arith_bin_op_i(TokenKind op)
 	emit(inst);
 }
 
-void Compiler::emit_arith_bin_op_f(TokenKind op)
+void Compiler::emit_bin_op_arith_f(TokenKind op)
 {
 	Bytecode inst;
 	switch (op)
@@ -115,7 +170,7 @@ void Compiler::emit_arith_bin_op_f(TokenKind op)
 	code.push_back((uint8_t)inst);
 }
 
-void Compiler::emit_arith_bin_op(BuiltIn built_in_type, TokenKind op)
+void Compiler::emit_bin_op_arith(BuiltIn built_in_type, TokenKind op)
 {
 	switch (built_in_type)
 	{
@@ -124,12 +179,12 @@ void Compiler::emit_arith_bin_op(BuiltIn built_in_type, TokenKind op)
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
 		{
-			emit_arith_bin_op_i(op);
+			emit_bin_op_arith_i(op);
 			break;
 		}
 		case BuiltIn::T_F32:
 		{
-			emit_arith_bin_op_f(op);
+			emit_bin_op_arith_f(op);
 			break;
 		}
 		default:
@@ -139,7 +194,67 @@ void Compiler::emit_arith_bin_op(BuiltIn built_in_type, TokenKind op)
 	}
 }
 
-void Compiler::emit_arith_un_op_i(TokenKind op)
+void Compiler::emit_bin_op_rel_i(TokenKind op)
+{
+	/*
+		high level code:
+
+			a < b
+
+		bytecode:
+
+		if a < b push 1 else push 0
+
+		cmp a, b
+		jge 2
+		ld.imm.1
+		jmp 2
+		ld.imm.0
+
+	*/
+	switch (op)
+	{
+		case TokenKind::LEFT_ANGLE:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
+void Compiler::emit_bin_op_rel_f(TokenKind op)
+{
+
+}
+
+void Compiler::emit_bin_op_rel(BuiltIn built_in_type, TokenKind op)
+{
+	switch (built_in_type)
+	{
+		case BuiltIn::T_CHAR:
+		case BuiltIn::T_I8:
+		case BuiltIn::T_I16:
+		case BuiltIn::T_I32:
+		{
+			emit_bin_op_rel_i(op);
+			break;
+		}
+		case BuiltIn::T_F32:
+		{
+			emit_bin_op_rel_f(op);
+			break;
+		}
+		default:
+		{
+			pt_unreachable();
+		}
+	}
+}
+
+void Compiler::emit_un_op_arith_i(TokenKind op)
 {
 	switch (op)
 	{
@@ -150,7 +265,7 @@ void Compiler::emit_arith_un_op_i(TokenKind op)
 	}
 }
 
-void Compiler::emit_arith_un_op_f(TokenKind op)
+void Compiler::emit_un_op_arith_f(TokenKind op)
 {
 	switch (op)
 	{
@@ -160,7 +275,7 @@ void Compiler::emit_arith_un_op_f(TokenKind op)
 	}
 }
 
-void Compiler::emit_arith_un_op(BuiltIn built_in_type, TokenKind op)
+void Compiler::emit_un_op_arith(BuiltIn built_in_type, TokenKind op)
 {
 	switch (built_in_type)
 	{
@@ -169,12 +284,12 @@ void Compiler::emit_arith_un_op(BuiltIn built_in_type, TokenKind op)
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
 		{
-			emit_arith_un_op_i(op);
+			emit_un_op_arith_i(op);
 			break;
 		}
 		case BuiltIn::T_F32:
 		{
-			emit_arith_un_op_f(op);
+			emit_un_op_arith_f(op);
 			break;
 		}
 		default:
@@ -251,44 +366,42 @@ void Compiler::visit(ASTExpressionGroup* node)
 
 void Compiler::visit(ASTExpressionLiteral* node)
 {
-	union { int32_t i32; float f32; } extract;
 	switch (node->type->built_in_type)
 	{
 		case BuiltIn::T_BOOL:
 		{
-			extract.i32 = node->token.kind == TokenKind::LITERAL_TRUE;
+			int32_t value = node->token.kind == TokenKind::LITERAL_TRUE;
+			emit_load_const_i(value);
 			break;
 		}
 		case BuiltIn::T_CHAR:
 		{
-			extract.i32 = (int32_t)node->token.buffer[0];
+			int32_t value = (int32_t)node->token.buffer[0];
+			emit_load_const_i(value);
 			break;
 		}
 		case BuiltIn::T_I8:
 		case BuiltIn::T_I16:
 		case BuiltIn::T_I32:
 		{
-			extract.i32 = std::stoi(node->token.buffer);
+			int32_t value = std::stoi(node->token.buffer);
+			emit_load_const_i(value);
 			break;
 		}
 		case BuiltIn::T_F32:
 		{
-			extract.f32 = std::stof(node->token.buffer);
+			float value = std::stof(node->token.buffer);
+			emit_load_const_f(value);
 			break;
 		}
 	}
-
-	// TODO :	emit the appropiate instruction
-	//			depending on value
-
-	emit_load_const(extract.i32);
 }
 
 void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
 	BuiltIn built_in_type = node->type->built_in_type;
-	emit_arith_un_op(built_in_type, node->op.kind);
+	emit_un_op_arith(built_in_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionBinary* node)
@@ -296,7 +409,7 @@ void Compiler::visit(ASTExpressionBinary* node)
 	node->left->accept(this);
 	node->right->accept(this);
 	BuiltIn built_in_type = node->type->built_in_type;
-	emit_arith_bin_op(built_in_type, node->op.kind);
+	emit_bin_op_arith(built_in_type, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionAssign* node)
@@ -337,4 +450,9 @@ void Compiler::visit(ASTStatementExpression* node)
 		// we can emit a warning for discarded value here
 		emit_pop();
 	}
+}
+
+size_t Compiler::get_code_index()
+{
+	return code.size();
 }
