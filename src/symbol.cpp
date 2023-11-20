@@ -48,3 +48,17 @@ SymbolVariable::~SymbolVariable()
 {
 	delete type;
 }
+
+bool SymbolFunction::AddOverload(ASTType* type, ASTStatementBlock* block)
+{
+	for (size_t i = 0; i < signatures.size(); i++)
+	{
+		if (signatures[i].first->is_equal(type))
+		{
+			pt_error("overload already exists %s", type->to_string().data());
+			return false;
+		}
+	}
+	signatures.push_back(std::pair(type, block));
+	return true;
+}

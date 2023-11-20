@@ -19,22 +19,27 @@ const char* token_kind_to_string(TokenKind kind)
 const std::unordered_map<std::string, TokenKind> reserved_keywords =
 {
 	{ "var", TokenKind::KW_VAR },
+	{ "fun", TokenKind::KW_FUN },
+	{ "class", TokenKind::KW_CLASS },
+	{ "return", TokenKind::KW_RETURN },
+	{ "break", TokenKind::KW_BREAK },
+	{ "continue", TokenKind::KW_CONTINUE },
 	{ "cast", TokenKind::KW_CAST },
 	{ "and", TokenKind::KW_AND },
 	{ "or", TokenKind::KW_OR },
 	{ "not", TokenKind::KW_NOT },
 	{ "is", TokenKind::KW_IS },
-	{ "null", TokenKind::LITERAL_NULL },
-	{ "true", TokenKind::LITERAL_TRUE },
-	{ "false", TokenKind::LITERAL_FALSE },
+	{ "null", TokenKind::LIT_NULL },
+	{ "true", TokenKind::LIT_TRUE },
+	{ "false", TokenKind::LIT_FALSE },
 	{ "bool", TokenKind::KW_BOOL },
 	{ "char", TokenKind::KW_CHAR },
-	{ "i8", TokenKind::KW_INT8 },
-	{ "i16", TokenKind::KW_INT16 },
-	{ "i32", TokenKind::KW_INT32 },
-	/* { "i64", TokenKind::KW_INT64 }, */
-	{ "f32", TokenKind::KW_FLOAT32 },
-	/* { "f64", TokenKind::KW_FLOAT64 }, */
+	{ "i8", TokenKind::KW_I1 },
+	{ "i16", TokenKind::KW_I2 },
+	{ "i32", TokenKind::KW_I4 },
+	//{ "i64", TokenKind::KW_I8 },
+	{ "f32", TokenKind::KW_F4 },
+	//{ "f64", TokenKind::KW_F8 },
 };
 
 const std::unordered_map<TokenKind, std::string> reserved_operators =

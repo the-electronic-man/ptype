@@ -26,12 +26,18 @@ struct SemanticAnalyzer : Visitor
 		delete global_scope;
 	}
 
+	void push_scope(Scope* scope);
+	void pop_scope();
+
 	void process(ASTNode* node) override;
 
 	void visit(ASTNameSimple* node) override;
 	void visit(ASTNameQualified* node) override;
 
-	void visit(ASTType* node) override;
+	// void visit(ASTTypePrimitive* node) override;
+	// void visit(ASTTypeArray* node) override;
+	// void visit(ASTTypeReference* node) override;
+	// void visit(ASTTypeFunction* node) override;
 
 	void visit(ASTExpressionCast* node) override;
 	void visit(ASTExpressionGroup* node) override;
@@ -42,6 +48,7 @@ struct SemanticAnalyzer : Visitor
 	void visit(ASTExpressionName* node) override;
 
 	void visit(ASTDeclarationVariable* node) override;
+	void visit(ASTDeclarationFunction* node) override;
 
 	void visit(ASTStatementBlock* node) override;
 	void visit(ASTStatementExpression* node) override;
@@ -51,5 +58,5 @@ struct SemanticAnalyzer : Visitor
 
 
 
-	ASTExpression* insert_cast_to(ASTExpression* dst_node, ASTType* src_type, ASTType* dst_type);
+	ASTExpression* insert_cast_to(ASTExpression* dst_node, ASTTypePrimitive* src_type, ASTTypePrimitive* dst_type);
 };

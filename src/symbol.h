@@ -70,6 +70,44 @@ struct SymbolVariable : Symbol
 	~SymbolVariable();
 };
 
+enum FunctionTypeSpecifier
+{
+	FLAG_STATIC = 0x01,
+	FLAG_CTOR = 0x02,
+};
+
+struct FunctionAttributes
+{
+	ASTType* type;
+	bool is_ctor : 1;
+	bool is_member : 1;
+	bool is_static : 1;
+	bool is_native : 1;
+};
+
+
+struct ASTStatementBlock;
+struct ASTType;
+struct SymbolFunction : Symbol
+{
+	Token name;
+	std::vector<std::pair<ASTType*, ASTStatementBlock*>> signatures;
+
+	SymbolFunction(Token name) : Symbol(name, SymbolKind::FUNCTION, ScopeKind::FUNCTION)
+	{
+		this->name = name;
+	}
+	~SymbolFunction()
+	{
+		for (size_t i = 0; i < signatures.size(); i++)
+		{
+			delete signatures[i].first;
+			delete signatures[i].second;
+		}
+	}
+	bool AddOverload(ASTType* type, ASTStatementBlock* block);
+};
+
 struct SymbolNamespace : Symbol
 {
 	SymbolNamespace(Token name)

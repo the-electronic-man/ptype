@@ -84,19 +84,12 @@ ENUM_ITEM(JLT, "jlt", 4, -2) \
 ENUM_ITEM(JLE, "jle", 4, -2) \
 ENUM_ITEM(JGT, "jgt", 4, -2) \
 ENUM_ITEM(JGE, "jge", 4, -2) \
-/* comparison with 0 */ \
-ENUM_ITEM(CEQ_Z, "ceq.z", 4, 0) \
-ENUM_ITEM(CNE_Z, "cne.z", 4, 0) \
-ENUM_ITEM(CLT_Z, "clt.z", 4, 0) \
-ENUM_ITEM(CLE_Z, "cle.z", 4, 0) \
-ENUM_ITEM(CGT_Z, "cgt.z", 4, 0) \
-ENUM_ITEM(CGE_Z, "cge.z", 4, 0) \
 /* comparison with 2 ints */ \
-ENUM_ITEM(CEQ, "ceq", 4, -1) \
-ENUM_ITEM(CNE, "cne", 4, -1) \
-ENUM_ITEM(CLT, "clt", 4, -1) \
-ENUM_ITEM(CLE, "cle", 4, -1) \
-ENUM_ITEM(CGT, "cgt", 4, -1) \
-ENUM_ITEM(CGE, "cge", 4, -1) \
+ENUM_ITEM(CEQ, "cmp.eq.i4", 4, -1) \
+ENUM_ITEM(CNE, "cmp.ne.i4", 4, -1) \
+ENUM_ITEM(CLT, "cmp.lt.i4", 4, -1) \
+ENUM_ITEM(CLE, "cmp.le.i4", 4, -1) \
+ENUM_ITEM(CGT, "cmp.gt.i4", 4, -1) \
+ENUM_ITEM(CGE, "cmp.ge.i4", 4, -1) \
 /* other */ \
 ENUM_ITEM(HALT, "halt", 0, 0) \

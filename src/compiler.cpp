@@ -170,19 +170,21 @@ void Compiler::emit_bin_op_arith_f(TokenKind op)
 	code.push_back((uint8_t)inst);
 }
 
-void Compiler::emit_bin_op_arith(BuiltIn built_in_type, TokenKind op)
+void Compiler::emit_bin_op_arith(BuiltIn built_in, TokenKind op)
 {
-	switch (built_in_type)
+	switch (built_in)
 	{
 		case BuiltIn::T_CHAR:
-		case BuiltIn::T_I8:
-		case BuiltIn::T_I16:
-		case BuiltIn::T_I32:
+		case BuiltIn::T_I1:
+		case BuiltIn::T_I2:
+		case BuiltIn::T_I4:
+			// case BuiltIn::T_I8:
 		{
 			emit_bin_op_arith_i(op);
 			break;
 		}
-		case BuiltIn::T_F32:
+		case BuiltIn::T_F4:
+			// case BuiltIn::T_F8:
 		{
 			emit_bin_op_arith_f(op);
 			break;
@@ -196,32 +198,15 @@ void Compiler::emit_bin_op_arith(BuiltIn built_in_type, TokenKind op)
 
 void Compiler::emit_bin_op_rel_i(TokenKind op)
 {
-	/*
-		high level code:
-
-			a < b
-
-		bytecode:
-
-		if a < b push 1 else push 0
-
-		cmp a, b
-		jge 2
-		ld.imm.1
-		jmp 2
-		ld.imm.0
-
-	*/
 	switch (op)
 	{
-		case TokenKind::LEFT_ANGLE:
-		{
-			break;
-		}
-		default:
-		{
-			break;
-		}
+		case TokenKind::LEFT_ANGLE:				emit(Bytecode::CLT); break;
+		case TokenKind::LEFT_ANGLE_EQUAL:		emit(Bytecode::CLE); break;
+		case TokenKind::RIGHT_ANGLE:			emit(Bytecode::CGT); break;
+		case TokenKind::RIGHT_ANGLE_EQUAL:		emit(Bytecode::CGE); break;
+		case TokenKind::EQUAL:					emit(Bytecode::CEQ); break;
+		case TokenKind::NOT_EQUAL:				emit(Bytecode::CNE); break;
+		default:								pt_unreachable();
 	}
 }
 
@@ -230,19 +215,21 @@ void Compiler::emit_bin_op_rel_f(TokenKind op)
 
 }
 
-void Compiler::emit_bin_op_rel(BuiltIn built_in_type, TokenKind op)
+void Compiler::emit_bin_op_rel(BuiltIn built_in, TokenKind op)
 {
-	switch (built_in_type)
+	switch (built_in)
 	{
 		case BuiltIn::T_CHAR:
-		case BuiltIn::T_I8:
-		case BuiltIn::T_I16:
-		case BuiltIn::T_I32:
+		case BuiltIn::T_I1:
+		case BuiltIn::T_I2:
+		case BuiltIn::T_I4:
+			// case BuiltIn::T_I8:
 		{
 			emit_bin_op_rel_i(op);
 			break;
 		}
-		case BuiltIn::T_F32:
+		case BuiltIn::T_F4:
+			// case BuiltIn::T_F8:
 		{
 			emit_bin_op_rel_f(op);
 			break;
@@ -275,19 +262,20 @@ void Compiler::emit_un_op_arith_f(TokenKind op)
 	}
 }
 
-void Compiler::emit_un_op_arith(BuiltIn built_in_type, TokenKind op)
+void Compiler::emit_un_op_arith(BuiltIn built_in, TokenKind op)
 {
-	switch (built_in_type)
+	switch (built_in)
 	{
 		case BuiltIn::T_CHAR:
-		case BuiltIn::T_I8:
-		case BuiltIn::T_I16:
-		case BuiltIn::T_I32:
+		case BuiltIn::T_I1:
+		case BuiltIn::T_I2:
+		case BuiltIn::T_I4:
+			// case BuiltIn::T_I8:
 		{
 			emit_un_op_arith_i(op);
 			break;
 		}
-		case BuiltIn::T_F32:
+		case BuiltIn::T_F4:
 		{
 			emit_un_op_arith_f(op);
 			break;
@@ -308,16 +296,17 @@ void Compiler::emit_convert(BuiltIn src, BuiltIn dst)
 
 	switch (src)
 	{
-		case BuiltIn::T_F32:
+		case BuiltIn::T_F4:
 		{
 			emit(Bytecode::I2F);
 			break;
 		}
 		case BuiltIn::T_BOOL:
 		case BuiltIn::T_CHAR:
-		case BuiltIn::T_I8:
-		case BuiltIn::T_I16:
-		case BuiltIn::T_I32:
+		case BuiltIn::T_I1:
+		case BuiltIn::T_I2:
+		case BuiltIn::T_I4:
+			// case BuiltIn::T_I8:
 		{
 			emit(Bytecode::F2I);
 			break;
@@ -354,8 +343,8 @@ void Compiler::disassemble()
 void Compiler::visit(ASTExpressionCast* node)
 {
 	node->expr->accept(this);
-	//BuiltIn src = node->expr->type->built_in_type;
-	//BuiltIn dst = node->type->built_in_type;
+	//BuiltIn src = node->expr->type->built_in;
+	//BuiltIn dst = node->type->built_in;
 	//emit_convert(src, dst);
 }
 
@@ -366,11 +355,12 @@ void Compiler::visit(ASTExpressionGroup* node)
 
 void Compiler::visit(ASTExpressionLiteral* node)
 {
-	switch (node->type->built_in_type)
+	assert(node->type->kind == NodeKind::TYPE_PRIM);
+	switch (((ASTTypePrimitive*)node->type)->built_in)
 	{
 		case BuiltIn::T_BOOL:
 		{
-			int32_t value = node->token.kind == TokenKind::LITERAL_TRUE;
+			int32_t value = node->token.kind == TokenKind::LIT_TRUE;
 			emit_load_const_i(value);
 			break;
 		}
@@ -380,36 +370,43 @@ void Compiler::visit(ASTExpressionLiteral* node)
 			emit_load_const_i(value);
 			break;
 		}
-		case BuiltIn::T_I8:
-		case BuiltIn::T_I16:
-		case BuiltIn::T_I32:
+		case BuiltIn::T_I1:
+		case BuiltIn::T_I2:
+		case BuiltIn::T_I4:
+			// case BuiltIn::T_I8:
 		{
 			int32_t value = std::stoi(node->token.buffer);
 			emit_load_const_i(value);
 			break;
 		}
-		case BuiltIn::T_F32:
+		case BuiltIn::T_F4:
 		{
 			float value = std::stof(node->token.buffer);
 			emit_load_const_f(value);
 			break;
 		}
+		// case BuiltIn::T_F8:
+		// {
+		// 	double value = std::stod(node->token.buffer);
+		// 	emit_load_const_f(value);
+		// 	break;
+		// }
 	}
 }
 
 void Compiler::visit(ASTExpressionUnary* node)
 {
 	node->expr->accept(this);
-	BuiltIn built_in_type = node->type->built_in_type;
-	emit_un_op_arith(built_in_type, node->op.kind);
+	BuiltIn built_in = ((ASTTypePrimitive*)node->type)->built_in;
+	emit_un_op_arith(built_in, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionBinary* node)
 {
 	node->left->accept(this);
 	node->right->accept(this);
-	BuiltIn built_in_type = node->type->built_in_type;
-	emit_bin_op_arith(built_in_type, node->op.kind);
+	BuiltIn built_in = ((ASTTypePrimitive*)node->type)->built_in;
+	emit_bin_op_arith(built_in, node->op.kind);
 }
 
 void Compiler::visit(ASTExpressionAssign* node)
@@ -445,7 +442,7 @@ void Compiler::visit(ASTStatementBlock* node)
 void Compiler::visit(ASTStatementExpression* node)
 {
 	node->expr->accept(this);
-	if (!is_void(node->expr->type->built_in_type))
+	if (!is_void(((ASTTypePrimitive*)node->expr->type)->built_in))
 	{
 		// we can emit a warning for discarded value here
 		emit_pop();

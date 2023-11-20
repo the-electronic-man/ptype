@@ -113,8 +113,33 @@ ASTType* Parser::parse_type()
 		pt_log("%s is not a primitive type", crt_token.buffer.data());
 		return nullptr;
 	}
-	(void)expect(TokenKind::IDENTIFIER);
-	ASTType* node = new ASTType(built_in_type);
+	(void)expect(crt_token.kind);
+	ASTType* node = new ASTTypePrimitive(built_in_type);
+	return node;
+}
+
+ASTName* Parser::parse_name()
+{
+	ASTName* node = nullptr;
+	do
+	{
+		if (crt_token.kind == TokenKind::IDENTIFIER)
+		{
+			Token token = expect(TokenKind::IDENTIFIER);
+			node = new ASTNameSimple(token);
+		}
+		else if (crt_token.kind == TokenKind::COLON_COLON)
+		{
+			(void)expect(TokenKind::COLON_COLON);
+			Token token = expect(TokenKind::IDENTIFIER);
+			node = new ASTNameQualified(node, new ASTNameSimple(token));
+		}
+		else
+		{
+			break;
+		}
+	} while (true);
+
 	return node;
 }
 
@@ -125,13 +150,14 @@ ASTExpression* Parser::parse_expr_primary()
 	// '(' EXPRESSION ')'
 	switch (crt_token.kind)
 	{
-		case TokenKind::LITERAL_NULL:
-		case TokenKind::LITERAL_TRUE:
-		case TokenKind::LITERAL_FALSE:
-		case TokenKind::LITERAL_CHAR:
-		case TokenKind::LITERAL_INT:
-		case TokenKind::LITERAL_FLOAT:
-		case TokenKind::LITERAL_STRING:
+		case TokenKind::LIT_NULL:
+		case TokenKind::LIT_TRUE:
+		case TokenKind::LIT_FALSE:
+		case TokenKind::LIT_CHAR:
+		case TokenKind::LIT_I4:
+		case TokenKind::LIT_F4:
+			// case TokenKind::LIT_F8:
+		case TokenKind::LIT_STR:
 		{
 			Token token = expect(crt_token.kind);
 			return new ASTExpressionLiteral(token);
@@ -144,9 +170,9 @@ ASTExpression* Parser::parse_expr_primary()
 			return expr;
 		}
 		case TokenKind::IDENTIFIER:
+		case TokenKind::COLON_COLON:
 		{
-			Token token = expect(crt_token.kind);
-			ASTName* name = new ASTNameSimple(token);
+			ASTName* name = parse_name();
 			ASTExpressionName* node = new ASTExpressionName(name);
 			return node;
 		}
@@ -306,8 +332,8 @@ ASTDeclaration* Parser::parse_decl()
 	switch (crt_token.kind)
 	{
 		case TokenKind::KW_VAR:		return parse_decl_var();
-			// case TokenKind::KW_FUN:		return parse_decl_var();
-			// case TokenKind::KW_CLASS:	return parse_decl_var();
+		case TokenKind::KW_FUN:		return parse_decl_fun();
+			// case TokenKind::KW_CLASS:	return parse_decl_class();
 		default:					return parse_stmt();
 	}
 }
@@ -319,12 +345,60 @@ ASTDeclaration* Parser::parse_stmt()
 		// case TokenKind::KW_IF:		return parse_stmt_conditional();
 		// case TokenKind::KW_WHILE:	return parse_stmt_while();
 		// case TokenKind::KW_FOR:		return parse_stmt_for();
-		// case TokenKind::KW_BREAK:	return parse_stmt_break();
-		// case TokenKind::KW_CONTINUE:	return parse_stmt_continue();
-		// case TokenKind::KW_RETURN:	return parse_stmt_return();
+		case TokenKind::KW_BREAK:		return parse_stmt_break();
+		case TokenKind::KW_CONTINUE:	return parse_stmt_continue();
+		case TokenKind::KW_RETURN:		return parse_stmt_return();
 		case TokenKind::LEFT_BRACE:		return parse_stmt_block();
 		default:						return parse_stmt_expr();
 	}
+}
+
+ASTDeclarationFunction* Parser::parse_decl_fun()
+{
+	std::vector<Token> parameter_name_list;
+	std::vector<ASTType*> parameter_type_list;
+	ASTTypeFunction* signature = nullptr;
+	ASTType* return_type = nullptr;
+
+	(void)expect(TokenKind::KW_FUN);
+	Token function_name = expect(TokenKind::IDENTIFIER);
+	(void)expect(TokenKind::LEFT_PAREN);
+
+	while (crt_token.kind != TokenKind::RIGHT_PAREN &&
+		crt_token.kind != TokenKind::END_OF_FILE)
+	{
+		Token parameter_name = expect(TokenKind::IDENTIFIER);
+		(void)expect(TokenKind::COLON);
+		ASTType* parameter_type = parse_type();
+
+		parameter_name_list.push_back(parameter_name);
+		parameter_type_list.push_back(parameter_type);
+
+		if (crt_token.kind == TokenKind::COMMA)
+		{
+			(void)expect(TokenKind::COMMA);
+		}
+		else if (crt_token.kind == TokenKind::RIGHT_PAREN)
+		{
+			break;
+		}
+	}
+	(void)expect(TokenKind::RIGHT_PAREN);
+	if (crt_token.kind == TokenKind::MINUS)
+	{
+		(void)expect(TokenKind::MINUS);
+		(void)expect(TokenKind::RIGHT_ANGLE);
+		parameter_type_list.push_back(parse_type());
+	}
+	else
+	{
+		parameter_type_list.push_back(new ASTTypePrimitive(BuiltIn::T_VOID));
+	}
+	signature = new ASTTypeFunction(parameter_type_list);
+	ASTStatementBlock* block = (ASTStatementBlock*)parse_stmt_block();
+	ASTDeclarationFunction* node =
+		new ASTDeclarationFunction(function_name, signature, parameter_name_list, block);
+	return node;
 }
 
 ASTStatement* Parser::parse_stmt_expr()
@@ -336,6 +410,44 @@ ASTStatement* Parser::parse_stmt_expr()
 	// {
 	// 	node = new ASTStatementExpression(expr);
 	// }
+	return node;
+}
+
+ASTStatement* Parser::parse_stmt_return()
+{
+	ASTExpression* expr = nullptr;
+
+	(void)expect(TokenKind::KW_RETURN);
+
+	if (crt_token.kind != TokenKind::SEMICOLON)
+	{
+		expr = parse_expr();
+	}
+
+	(void)expect(TokenKind::SEMICOLON);
+
+	ASTStatementReturn* node = new ASTStatementReturn(expr);
+
+	return node;
+}
+
+ASTStatement* Parser::parse_stmt_break()
+{
+	(void)expect(TokenKind::KW_CONTINUE);
+	(void)expect(TokenKind::SEMICOLON);
+
+	ASTStatementBreak* node = new ASTStatementBreak();
+
+	return node;
+}
+
+ASTStatement* Parser::parse_stmt_continue()
+{
+	(void)expect(TokenKind::KW_CONTINUE);
+	(void)expect(TokenKind::SEMICOLON);
+
+	ASTStatementContinue* node = new ASTStatementContinue();
+
 	return node;
 }
 
@@ -357,7 +469,7 @@ ASTStatement* Parser::parse_stmt_block()
 	return node;
 }
 
-ASTDeclaration* Parser::parse_decl_var()
+ASTDeclarationVariable* Parser::parse_decl_var()
 {
 	(void)expect(TokenKind::KW_VAR);
 	Token var_name = expect(TokenKind::IDENTIFIER);
@@ -390,7 +502,7 @@ ASTDeclaration* Parser::parse_decl_var()
 			error("unexpected token '%s'", token_kind_to_string(crt_token.kind));
 		}
 	}
-	ASTDeclaration* node = new ASTDeclarationVariable(var_name, type, expr);
+	ASTDeclarationVariable* node = new ASTDeclarationVariable(var_name, type, expr);
 
 	// if (!is_panic)
 	// {
@@ -401,10 +513,11 @@ ASTDeclaration* Parser::parse_decl_var()
 	return node;
 }
 
-ASTDeclaration* Parser::parse_decl_param()
+ASTDeclarationVariable* Parser::parse_decl_param()
 {
 	Token var_name = expect(TokenKind::IDENTIFIER);
 	(void)expect(TokenKind::COLON);
 	ASTType* type = parse_type();
-	return nullptr;
+	ASTDeclarationVariable* node = new ASTDeclarationVariable(var_name, type, nullptr);
+	return node;
 }

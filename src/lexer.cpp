@@ -148,8 +148,47 @@ Token Lexer::get_identifier()
 
 Token Lexer::get_number()
 {
-	TokenKind kind = TokenKind::LITERAL_INT;
+	TokenKind kind = TokenKind::LIT_I4;
 	size_t it_begin = position;
+
+	if (ch == '0')
+	{
+		advance();
+		if (ch == 'x' || ch == 'X')
+		{
+			advance();
+			size_t c = 0;
+			const int max_int_nibble_count = 8;
+			while (isxdigit(ch))
+			{
+				advance();
+				++c;
+				if (c > max_int_nibble_count)
+				{
+					pt_error("integer literal too big for current architecture");
+				}
+			}
+			size_t it_end = position;
+			return Token(kind, buffer + it_begin, it_end - it_begin);
+		}
+		else if (ch == 'b' || ch == 'B')
+		{
+			advance();
+			size_t c = 0;
+			const int max_int_bit_count = 32;
+			while (ch == '0' || ch == '1')
+			{
+				advance();
+				++c;
+				if (c > max_int_bit_count)
+				{
+					pt_error("integer literal too big for current architecture");
+				}
+			}
+			size_t it_end = position;
+			return Token(kind, buffer + it_begin, it_end - it_begin);
+		}
+	}
 
 	while (isdigit(ch))
 	{
@@ -164,7 +203,19 @@ Token Lexer::get_number()
 			advance();
 		}
 
-		kind = TokenKind::LITERAL_FLOAT;
+		if (ch == 'f' || ch == 'F')
+		{
+			advance();
+			kind = TokenKind::LIT_F4;
+		}
+		else
+		{
+			pt_error("expected 'f' after a 'float' constant (currently 'double' is not supported)");
+		}
+		//else
+	//{
+	//	kind = TokenKind::LIT_F8;
+	//}
 	}
 
 	size_t it_end = position;
@@ -213,7 +264,7 @@ Token Lexer::get_char()
 		pt_error("expected single-quote \"'\" after literal char");
 	}
 	advance();
-	return Token(TokenKind::LITERAL_CHAR, std::to_string(token_ch));
+	return Token(TokenKind::LIT_CHAR, std::to_string(token_ch));
 }
 
 Token Lexer::get_token_raw()
@@ -387,6 +438,16 @@ Token Lexer::get_token_raw()
 				advance();
 				return Token(TokenKind::RIGHT_PAREN);
 			}
+			case '{':
+			{
+				advance();
+				return Token(TokenKind::LEFT_BRACE);
+			}
+			case '}':
+			{
+				advance();
+				return Token(TokenKind::RIGHT_BRACE);
+			}
 			case '[':
 			{
 				advance();
@@ -410,7 +471,18 @@ Token Lexer::get_token_raw()
 			case ':':
 			{
 				advance();
-				return Token(TokenKind::COLON);
+				switch (ch)
+				{
+					case ':':
+					{
+						advance();
+						return Token(TokenKind::COLON_COLON);
+					}
+					default:
+					{
+						return Token(TokenKind::COLON);
+					}
+				}
 			}
 			case ';':
 			{

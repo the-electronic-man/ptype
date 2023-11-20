@@ -82,7 +82,7 @@ int pt_cmd_run_file(char* file_name)
 
 	compiler.disassemble();
 
-	delete node;
+	// delete node;
 
 	return 0;
 }

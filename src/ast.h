@@ -27,6 +27,10 @@ struct ASTNameSimple;
 struct ASTNameQualified;
 
 struct ASTType;
+struct ASTTypePrimitive;
+struct ASTTypeArray;
+struct ASTTypeReference;
+struct ASTTypeFunction;
 
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
@@ -42,9 +46,14 @@ struct ASTExpressionArrayGet;
 struct ASTExpressionArraySet;
 
 struct ASTStatementExpression;
+struct ASTStatementReturn;
+struct ASTStatementBreak;
+struct ASTStatementContinue;
 struct ASTStatementBlock;
 
 struct ASTDeclarationVariable;
+struct ASTDeclarationFunction;
+struct ASTDeclarationClass;
 
 struct Visitor
 {
@@ -54,7 +63,10 @@ struct Visitor
 	virtual void visit(ASTNameSimple* node) {}
 	virtual void visit(ASTNameQualified* node) {}
 
-	virtual void visit(ASTType* node) {}
+	virtual void visit(ASTTypePrimitive* node) {}
+	virtual void visit(ASTTypeArray* node) {}
+	virtual void visit(ASTTypeReference* node) {}
+	virtual void visit(ASTTypeFunction* node) {}
 
 	virtual void visit(ASTExpressionCast* node) {}
 	virtual void visit(ASTExpressionGroup* node) {}
@@ -70,9 +82,14 @@ struct Visitor
 	virtual void visit(ASTExpressionArraySet* node) {}
 
 	virtual void visit(ASTStatementExpression* node) {}
+	virtual void visit(ASTStatementReturn* node) {}
+	virtual void visit(ASTStatementBreak* node) {}
+	virtual void visit(ASTStatementContinue* node) {}
 	virtual void visit(ASTStatementBlock* node) {}
 
 	virtual void visit(ASTDeclarationVariable* node) {}
+	virtual void visit(ASTDeclarationFunction* node) {}
+	virtual void visit(ASTDeclarationClass* node) {}
 };
 struct Symbol;
 
@@ -112,98 +129,208 @@ struct ASTName : ASTNode
 	virtual std::string to_string() = 0;
 };
 
+struct ASTParameterList
+{
+	std::vector<ASTType*> parameter_types;
+};
+
 struct ASTType : ASTNode
 {
-	BuiltIn built_in_type;
+	ASTType(NodeKind kind) : ASTNode(kind) {}
+	virtual std::string to_string() = 0;
+	virtual bool is_equal(ASTType* other) { return kind == other->kind; }
 
-	union
-	{
-		ASTType* subtype;
-		ASTName* name;
-	};
+	static bool is_void(ASTType* type);
+	static bool is_integer(ASTType* type);
+	static bool is_decimal(ASTType* type);
+};
 
-	ASTType(ASTType* subtype) : ASTNode(NodeKind::TYPE)
+struct ASTTypePrimitive : ASTType
+{
+	BuiltIn built_in;
+
+	ASTTypePrimitive(BuiltIn built_in) : ASTType(NodeKind::TYPE_PRIM)
 	{
-		this->subtype = subtype;
-		this->built_in_type = BuiltIn::T_ARR;
+		this->built_in = built_in;
 	}
 
-	ASTType(ASTName* name) : ASTNode(NodeKind::TYPE)
+	std::string to_string() override
 	{
-		this->name = name;
-		this->built_in_type = BuiltIn::T_REF;
+		return built_in_to_string(built_in);
 	}
 
-	ASTType(BuiltIn built_in_type) : ASTNode(NodeKind::TYPE)
-	{
-		this->built_in_type = built_in_type;
-	}
-
-	bool is_equal(ASTType* other)
-	{
-		if (built_in_type != other->built_in_type)
-		{
-			return false;
-		}
-
-		switch (built_in_type)
-		{
-			case BuiltIn::T_ARR:
-			{
-				return subtype->is_equal(other);
-			}
-			case BuiltIn::T_REF:
-			{
-				return name->symbol == other->name->symbol;
-			}
-			default:
-			{
-				return true;
-			}
-		}
-	}
-
-	void accept(Visitor* visitor) override
+	void accept(Visitor* visitor)
 	{
 		visitor->visit(this);
 	}
 
 	ASTNode* clone() override
 	{
-		switch (built_in_type)
+		ASTTypePrimitive* node =
+			new ASTTypePrimitive(built_in);
+		return node;
+	}
+
+	bool is_equal(ASTType* other) override
+	{
+		return
+			ASTType::is_equal(other) &&
+			built_in == ((ASTTypePrimitive*)other)->built_in;
+	}
+};
+
+struct ASTTypeArray : ASTType
+{
+	ASTType* subtype = nullptr;
+
+	ASTTypeArray(ASTType* subtype) : ASTType(NodeKind::TYPE_ARR)
+	{
+		this->subtype = subtype;
+		subtype->parent = this;
+	}
+
+	~ASTTypeArray()
+	{
+		delete subtype;
+	}
+
+	std::string to_string() override
+	{
+		return subtype->to_string() + "[]";
+	}
+
+	void accept(Visitor* visitor)
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone() override
+	{
+		ASTTypeArray* node =
+			new ASTTypeArray((ASTType*)subtype->clone());
+		return node;
+	}
+
+	bool is_equal(ASTType* other) override
+	{
+		return
+			ASTType::is_equal(other) &&
+			subtype->is_equal(((ASTTypeArray*)other)->subtype);
+	}
+};
+
+struct ASTTypeReference : ASTType
+{
+	Token name;
+
+	ASTTypeReference(Token name) : ASTType(NodeKind::TYPE_REF)
+	{
+		this->name = name;
+	}
+
+	std::string to_string() override
+	{
+		return name.buffer;
+	}
+
+	void accept(Visitor* visitor)
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone() override
+	{
+		ASTTypeReference* node =
+			new ASTTypeReference(name);
+		return node;
+	}
+
+	bool is_equal(ASTType* other) override
+	{
+		return
+			ASTType::is_equal(other) &&
+			name.buffer == ((ASTTypeReference*)other)->name.buffer;
+	}
+};
+
+struct ASTTypeFunction : ASTType
+{
+	std::vector<ASTType*> signature;
+
+	ASTTypeFunction(std::vector<ASTType*>& signature) : ASTType(NodeKind::TYPE_FUN)
+	{
+		pt_assert(signature.size() >= 1);
+		this->signature = signature;
+		for (size_t i = 0; i < signature.size(); i++)
 		{
-			case BuiltIn::T_REF:
-			{
-				return new ASTType((ASTType*)subtype->clone());
-			}
-			case BuiltIn::T_ARR:
-			{
-				return new ASTType((ASTName*)name->clone());
-			}
-			default:
-			{
-				return new ASTType(built_in_type);
-			}
+			signature[i]->parent = this;
 		}
 	}
 
-	std::string to_string()
+	~ASTTypeFunction()
 	{
-		switch (built_in_type)
+		for (size_t i = 0; i < signature.size(); i++)
 		{
-			case BuiltIn::T_REF:
+			delete signature[i];
+		}
+
+	}
+
+	std::string to_string() override
+	{
+		std::string s = "({";
+		for (size_t i = 0; i < signature.size() - 1; i++)
+		{
+			if (i != 0) { s += ", "; }
+			s += signature[i]->to_string();
+		}
+		s += "} -> " + signature.back()->to_string() + ")";
+		return s;
+	}
+
+	void accept(Visitor* visitor)
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone() override
+	{
+		std::vector<ASTType*> signature;
+
+		for (size_t i = 0; i < this->signature.size(); i++)
+		{
+			signature.push_back((ASTType*)this->signature[i]->clone());
+		}
+
+		ASTTypeFunction* node =
+			new ASTTypeFunction(signature);
+
+		return node;
+	}
+
+	bool is_equal(ASTType* other) override
+	{
+		if (!ASTType::is_equal(other))
+		{
+			return false;
+		}
+
+		ASTTypeFunction* other_func = (ASTTypeFunction*)other;
+
+		if (signature.size() != other_func->signature.size())
+		{
+			return false;
+		}
+
+		for (size_t i = 0; i < signature.size(); i++)
+		{
+			if (!signature[i]->is_equal(other_func->signature[i]))
 			{
-				return name->to_string();
-			}
-			case BuiltIn::T_ARR:
-			{
-				return subtype->to_string() + "[]";
-			}
-			default:
-			{
-				return built_in_to_string(built_in_type);
+				return false;
 			}
 		}
+
+		return true;
 	}
 };
 
@@ -742,8 +869,11 @@ struct ASTDeclarationVariable : ASTDeclaration
 			type->parent = this;
 		}
 
-		this->expr = expr;
-		expr->parent = this;
+		if (expr)
+		{
+			this->expr = expr;
+			expr->parent = this;
+		}
 	}
 
 	~ASTDeclarationVariable()
@@ -823,6 +953,94 @@ struct ASTStatementBlock : ASTStatement
 	}
 };
 
+
+struct ASTDeclarationFunction : ASTDeclaration
+{
+	Token name;
+	ASTTypeFunction* signature = nullptr;
+	std::vector<Token> parameter_name;
+	ASTStatementBlock* block = nullptr;
+
+	ASTDeclarationFunction
+	(
+		Token name,
+		ASTTypeFunction* signature,
+		std::vector<Token>& parameter_name,
+		ASTStatementBlock* block
+	)
+		: ASTDeclaration(name, NodeKind::DECL_FUN)
+	{
+		this->name = name;
+
+		pt_assert(signature);
+
+		this->signature = signature;
+		signature->parent = this;
+
+		this->parameter_name = parameter_name;
+
+		if (block)
+		{
+			this->block = block;
+			block->parent = this;
+		}
+
+	}
+
+	~ASTDeclarationFunction()
+	{
+		delete signature;
+
+		if (block)
+		{
+			delete block;
+		}
+	}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		ASTDeclarationFunction* node =
+			new ASTDeclarationFunction
+			(
+				name,
+				(ASTTypeFunction*)signature->clone(),
+				parameter_name,
+				(ASTStatementBlock*)block->clone()
+			);
+		return node;
+	}
+};
+
+
+struct ASTDeclarationClass : ASTDeclaration
+{
+	ASTDeclarationClass
+	(
+		Token name,
+		std::vector<ASTDeclaration*>& declarations
+	)
+		: ASTDeclaration(name, NodeKind::DECL_CLASS)
+	{
+
+	}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		return nullptr;
+	}
+};
+
+
 struct ASTStatementExpression : ASTStatement
 {
 	ASTExpression* expr = nullptr;
@@ -850,6 +1068,82 @@ struct ASTStatementExpression : ASTStatement
 			(
 				(ASTExpression*)expr->clone()
 			);
+		return node;
+	}
+};
+
+struct ASTStatementReturn : ASTStatement
+{
+	ASTExpression* expr = nullptr;
+
+	ASTStatementReturn(ASTExpression* expr) : ASTStatement(NodeKind::STMT_RETURN)
+	{
+		if (expr)
+		{
+			this->expr = expr;
+			expr->parent = this;
+		}
+	}
+
+	~ASTStatementReturn()
+	{
+		if (expr)
+		{
+			delete expr;
+		}
+	}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		ASTStatementReturn* node =
+			new ASTStatementReturn
+			(
+				(ASTExpression*)expr->clone()
+			);
+		return node;
+	}
+};
+
+
+struct ASTStatementContinue : ASTStatement
+{
+	ASTStatementContinue() : ASTStatement(NodeKind::STMT_CONTINUE) {}
+
+	~ASTStatementContinue() {}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		ASTStatementContinue* node =
+			new ASTStatementContinue();
+		return node;
+	}
+};
+
+struct ASTStatementBreak : ASTStatement
+{
+	ASTStatementBreak() : ASTStatement(NodeKind::STMT_BREAK) {}
+
+	~ASTStatementBreak() {}
+
+	void accept(Visitor* visitor) override
+	{
+		visitor->visit(this);
+	}
+
+	ASTNode* clone()
+	{
+		ASTStatementBreak* node =
+			new ASTStatementBreak();
 		return node;
 	}
 };

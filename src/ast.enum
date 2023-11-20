@@ -1,4 +1,7 @@
-ENUM_ITEM(TYPE, "type") \
+ENUM_ITEM(TYPE_PRIM, "type-prim") \
+ENUM_ITEM(TYPE_ARR, "type-arr") \
+ENUM_ITEM(TYPE_REF, "type-ref") \
+ENUM_ITEM(TYPE_FUN, "type-fun") \
 ENUM_ITEM(NAME_GLOBAL, "name-global") \
 ENUM_ITEM(NAME_SIMPLE, "name-simple") \
 ENUM_ITEM(NAME_QUALIFIED, "name-qualified") \
@@ -15,5 +18,10 @@ ENUM_ITEM(EXPR_ASSIGN, "expr-assign") \
 ENUM_ITEM(EXPR_NAME, "expr-name") \
 ENUM_ITEM(EXPR_CALL, "expr-call") \
 ENUM_ITEM(STMT_EXPR, "stmt-expr") \
+ENUM_ITEM(STMT_RETURN, "stmt-return") \
+ENUM_ITEM(STMT_CONTINUE, "stmt-continue") \
+ENUM_ITEM(STMT_BREAK, "stmt-break") \
 ENUM_ITEM(STMT_BLOCK, "stmt-block") \
 ENUM_ITEM(DECL_VAR, "decl-var") \
+ENUM_ITEM(DECL_FUN, "decl-fun") \
+ENUM_ITEM(DECL_CLASS, "decl-class") \

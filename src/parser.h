@@ -21,6 +21,8 @@ struct Parser
 
 	ASTType* parse_type();
 
+	ASTName* parse_name();
+
 	ASTExpression* parse_expr_primary();
 	ASTExpression* parse_expr_postfix();
 	ASTExpression* parse_expr_unary();
@@ -40,9 +42,14 @@ struct Parser
 
 	ASTDeclaration* parse_stmt();
 	ASTStatement* parse_stmt_expr();
+	ASTStatement* parse_stmt_return();
+	ASTStatement* parse_stmt_break();
+	ASTStatement* parse_stmt_continue();
 	ASTStatement* parse_stmt_block();
 
 	ASTDeclaration* parse_decl();
-	ASTDeclaration* parse_decl_var();
-	ASTDeclaration* parse_decl_param();
+	ASTDeclarationVariable* parse_decl_var();
+	ASTDeclarationFunction* parse_decl_fun();
+	ASTDeclarationClass* parse_decl_class();
+	ASTDeclarationVariable* parse_decl_param();
 };

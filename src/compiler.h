@@ -35,13 +35,13 @@ struct Compiler : Visitor
 
 	void emit_bin_op_arith_i(TokenKind op);
 	void emit_bin_op_arith_f(TokenKind op);
-	void emit_bin_op_arith(BuiltIn built_in_type, TokenKind op);
+	void emit_bin_op_arith(BuiltIn built_in, TokenKind op);
 	void emit_bin_op_rel_i(TokenKind op);
 	void emit_bin_op_rel_f(TokenKind op);
-	void emit_bin_op_rel(BuiltIn built_in_type, TokenKind op);
+	void emit_bin_op_rel(BuiltIn built_in, TokenKind op);
 	void emit_un_op_arith_i(TokenKind op);
 	void emit_un_op_arith_f(TokenKind op);
-	void emit_un_op_arith(BuiltIn built_in_type, TokenKind op);
+	void emit_un_op_arith(BuiltIn built_in, TokenKind op);
 	void emit_convert(BuiltIn src, BuiltIn dst);
 
 	size_t get_code_index();

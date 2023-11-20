@@ -28,9 +28,7 @@ bool is_integral(BuiltIn built_in_type);
 bool is_decimal(BuiltIn built_in_type);
 bool is_logic(BuiltIn built_in_type);
 bool is_void(BuiltIn built_in_type);
-bool is_reference(BuiltIn built_in_type);
-bool is_array(BuiltIn built_in_type);
-bool is_primitive(BuiltIn built_in_type);
+
 
 bool is_implicit_cast(BuiltIn src_type, BuiltIn dst_type);
 

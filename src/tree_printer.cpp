@@ -190,7 +190,21 @@ void TreePrinter::visit(ASTDeclarationVariable* node)
 			XML_ATTR("name", node->name.buffer),
 			XML_ATTR("type", node->type ? node->type->to_string() : "n/a")
 		),
-		VISIT_CHILD(expr)
+		node->expr ? (VISIT_CHILD(expr), 0) : 0
+	)
+}
+
+void TreePrinter::visit(ASTDeclarationFunction* node)
+{
+	XML_PRINT_ELEMENT_ATTR
+	(
+		node_kind_to_string(node->kind),
+		XML_ATTR_LIST
+		(
+			XML_ATTR("name", node->name.buffer),
+			XML_ATTR("signature", node->signature->to_string())
+		),
+		VISIT_CHILD(block)
 	)
 }
 
@@ -202,6 +216,32 @@ void TreePrinter::visit(ASTStatementExpression* node)
 		VISIT_CHILD(expr)
 	)
 }
+
+void TreePrinter::visit(ASTStatementReturn* node)
+{
+	XML_PRINT_ELEMENT
+	(
+		node_kind_to_string(node->kind),
+		VISIT_CHILD(expr)
+	)
+}
+
+void TreePrinter::visit(ASTStatementBreak* node)
+{
+	XML_PRINT_ELEMENT
+	(
+		node_kind_to_string(node->kind)
+	)
+}
+
+void TreePrinter::visit(ASTStatementContinue* node)
+{
+	XML_PRINT_ELEMENT
+	(
+		node_kind_to_string(node->kind)
+	)
+}
+
 
 void TreePrinter::visit(ASTStatementBlock* node)
 {
