@@ -2,6 +2,7 @@ ENUM_ITEM(TYPE_PRIM, "type-prim") \
 ENUM_ITEM(TYPE_ARR, "type-arr") \
 ENUM_ITEM(TYPE_REF, "type-ref") \
 ENUM_ITEM(TYPE_FUN, "type-fun") \
+ENUM_ITEM(TYPE_PARAM, "type-param") \
 ENUM_ITEM(NAME_GLOBAL, "name-global") \
 ENUM_ITEM(NAME_SIMPLE, "name-simple") \
 ENUM_ITEM(NAME_QUALIFIED, "name-qualified") \

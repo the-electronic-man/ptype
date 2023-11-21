@@ -21,6 +21,7 @@ struct TreePrinter : Visitor
 	void visit(ASTTypeArray* node) override {}
 	void visit(ASTTypeReference* node) override {}
 	void visit(ASTTypeFunction* node) override {}
+	void visit(ASTTypeParameterized* node) override {}
 
 	void visit(ASTExpressionCast* node) override;
 	void visit(ASTExpressionGroup* node) override;

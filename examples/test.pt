@@ -1,14 +1,4 @@
-var a = 3;
-// A::B::C::a + 3;
-fun f() -> i32
+fun f<T>(t : T) -> T
 {
-	return a;
+	return t;
 }
-fun g(a : i32) -> i32
-{
-	return a;
-}
-// fun h(a : i32, b : () -> i32 ) -> i32
-// {
-	// return a;
-// }

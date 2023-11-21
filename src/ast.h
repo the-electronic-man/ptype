@@ -31,6 +31,7 @@ struct ASTTypePrimitive;
 struct ASTTypeArray;
 struct ASTTypeReference;
 struct ASTTypeFunction;
+struct ASTTypeParameterized;
 
 struct ASTExpressionCast;
 struct ASTExpressionGroup;
@@ -67,6 +68,7 @@ struct Visitor
 	virtual void visit(ASTTypeArray* node) {}
 	virtual void visit(ASTTypeReference* node) {}
 	virtual void visit(ASTTypeFunction* node) {}
+	virtual void visit(ASTTypeParameterized* node) {}
 
 	virtual void visit(ASTExpressionCast* node) {}
 	virtual void visit(ASTExpressionGroup* node) {}
@@ -127,6 +129,7 @@ struct ASTName : ASTNode
 	Symbol* symbol = nullptr;
 	ASTName(NodeKind kind) : ASTNode(kind) {}
 	virtual std::string to_string() = 0;
+	virtual bool is_equal(ASTName* other) { return kind == other->kind; }
 };
 
 struct ASTParameterList
@@ -221,16 +224,18 @@ struct ASTTypeArray : ASTType
 
 struct ASTTypeReference : ASTType
 {
-	Token name;
+	ASTName* name = nullptr;
 
-	ASTTypeReference(Token name) : ASTType(NodeKind::TYPE_REF)
+	ASTTypeReference(ASTName* name) : ASTType(NodeKind::TYPE_REF)
 	{
+		assert(name);
 		this->name = name;
+		name->parent = this;
 	}
 
 	std::string to_string() override
 	{
-		return name.buffer;
+		return name->to_string();
 	}
 
 	void accept(Visitor* visitor)
@@ -241,7 +246,7 @@ struct ASTTypeReference : ASTType
 	ASTNode* clone() override
 	{
 		ASTTypeReference* node =
-			new ASTTypeReference(name);
+			new ASTTypeReference((ASTName*)name->clone());
 		return node;
 	}
 
@@ -249,7 +254,7 @@ struct ASTTypeReference : ASTType
 	{
 		return
 			ASTType::is_equal(other) &&
-			name.buffer == ((ASTTypeReference*)other)->name.buffer;
+			name->is_equal(((ASTTypeReference*)other)->name);
 	}
 };
 
@@ -334,6 +339,101 @@ struct ASTTypeFunction : ASTType
 	}
 };
 
+struct ASTTypeParameterized : ASTType
+{
+	ASTName* name = nullptr;
+	std::vector<ASTType*> parameters;
+	ASTTypeParameterized(ASTName* name, std::vector<ASTType*>& parameters)
+		: ASTType(NodeKind::TYPE_PARAM)
+	{
+		assert(name);
+		this->name = name;
+		name->parent = this;
+
+		this->parameters = parameters;
+		for (size_t i = 0; i < parameters.size(); i++)
+		{
+			assert(parameters[i]);
+			parameters[i]->parent = this;
+		}
+	}
+
+	~ASTTypeParameterized()
+	{
+		delete name;
+		for (size_t i = 0; i < parameters.size(); i++)
+		{
+			delete parameters[i];
+		}
+
+	}
+
+	std::string to_string() override
+	{
+		std::string s = name->to_string();
+		s += "<";
+		for (size_t i = 0; i < parameters.size(); i++)
+		{
+			if (i != 0) { s += ", "; }
+			s += parameters[i]->to_string();
+		}
+		s += ">";
+		return s;
+	}
+
+	void accept(Visitor* visitor)
+	{
+		visitor->visit(this);
+	}
+
+	bool is_equal(ASTType* other) override
+	{
+		if (!ASTType::is_equal(other))
+		{
+			return false;
+		}
+
+		ASTTypeParameterized* other_parameterized = (ASTTypeParameterized*)other;
+
+		if (parameters.size() != other_parameterized->parameters.size())
+		{
+			return false;
+		}
+
+		if (!name->is_equal(other_parameterized->name))
+		{
+			return false;
+		}
+
+		for (size_t i = 0; i < parameters.size(); i++)
+		{
+			if (!parameters[i]->is_equal(other_parameterized->parameters[i]))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	ASTNode* clone() override
+	{
+		std::vector<ASTType*> parameters;
+		for (size_t i = 0; i < this->parameters.size(); i++)
+		{
+			parameters.push_back((ASTType*)this->parameters[i]->clone());
+		}
+
+		ASTTypeParameterized* node =
+			new ASTTypeParameterized
+			(
+				(ASTName*)name->clone(),
+				parameters
+			);
+		return node;
+	}
+};
+
 struct ASTNameGlobal : ASTName
 {
 	ASTNameGlobal() : ASTName(NodeKind::NAME_GLOBAL) {}
@@ -345,13 +445,19 @@ struct ASTNameGlobal : ASTName
 
 	ASTNode* clone() override
 	{
-		ASTNameGlobal* node = (ASTNameGlobal*)ASTName::clone();
+		ASTNameGlobal* node = new ASTNameGlobal();
 		return node;
 	}
 
 	std::string to_string() override
 	{
-		return "global::";
+		return "global";
+	}
+
+	bool is_equal(ASTName* other) override
+	{
+		return
+			ASTName::is_equal(other);
 	}
 };
 
@@ -383,6 +489,13 @@ struct ASTNameSimple : ASTName
 	{
 		return token.buffer;
 	}
+
+	bool is_equal(ASTName* other) override
+	{
+		return
+			ASTName::is_equal(other) &&
+			token.buffer == ((ASTNameSimple*)other)->token.buffer;
+	}
 };
 
 struct ASTNameQualified : ASTName
@@ -400,7 +513,8 @@ struct ASTNameQualified : ASTName
 
 	~ASTNameQualified()
 	{
-
+		delete qualifier;
+		delete name;
 	}
 
 	void accept(Visitor* visitor) override
@@ -422,6 +536,14 @@ struct ASTNameQualified : ASTName
 	std::string to_string() override
 	{
 		return qualifier->to_string() + "::" + name->to_string();
+	}
+
+	bool is_equal(ASTName* other) override
+	{
+		return
+			ASTName::is_equal(other) &&
+			name->is_equal(((ASTNameQualified*)other)->name) &&
+			qualifier->is_equal(((ASTNameQualified*)other)->qualifier);
 	}
 };
 

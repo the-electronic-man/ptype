@@ -20,6 +20,9 @@ struct Parser
 	//void synchronize();
 
 	ASTType* parse_type();
+	//ASTType* parse_type_array();
+	//ASTType* parse_type_function();
+	ASTType* parse_type_name();
 
 	ASTName* parse_name();
 

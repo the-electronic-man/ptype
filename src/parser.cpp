@@ -105,17 +105,70 @@ void Parser::error(const char* format, ...)
 // 	}
 // }
 
+ASTType* Parser::parse_type_name()
+{
+	ASTName* name = parse_name();
+
+	if (crt_token.kind == TokenKind::LEFT_ANGLE)
+	{
+		(void)expect(TokenKind::LEFT_ANGLE);
+		std::vector<ASTType*> parameters;
+		while (crt_token.kind != TokenKind::END_OF_FILE)
+		{
+			if (crt_token.kind == TokenKind::COMMA)
+			{
+				(void)expect(TokenKind::COMMA);
+			}
+			parameters.push_back(parse_type());
+			if (crt_token.kind == TokenKind::RIGHT_ANGLE)
+			{
+				break;
+			}
+		}
+		(void)expect(TokenKind::RIGHT_ANGLE);
+		return new ASTTypeParameterized(name, parameters);
+	}
+	else
+	{
+		return new ASTTypeReference(name);
+	}
+}
+
 ASTType* Parser::parse_type()
 {
-	BuiltIn built_in_type;
-	if (!is_token_built_in_type(built_in_type, crt_token.kind))
+	BuiltIn built_in;
+	if (is_token_built_in_type(built_in, crt_token.kind))
 	{
-		pt_log("%s is not a primitive type", crt_token.buffer.data());
-		return nullptr;
+		return new ASTTypePrimitive(built_in);
 	}
-	(void)expect(crt_token.kind);
-	ASTType* node = new ASTTypePrimitive(built_in_type);
-	return node;
+
+	switch (crt_token.kind)
+	{
+		case TokenKind::IDENTIFIER:
+		case TokenKind::COLON_COLON:
+		{
+			return parse_type_name();
+		}
+		//case TokenKind::LEFT_PAREN:
+		//{
+			//return parse_type_function();
+		//}
+		default:
+		{
+			pt_error("invalid token for type: %s", token_kind_to_string(crt_token.kind));
+			return nullptr;
+		}
+	}
+
+	// BuiltIn built_in_type;
+	// if (!is_token_built_in_type(built_in_type, crt_token.kind))
+	// {
+	// 	pt_log("%s is not a primitive type", crt_token.buffer.data());
+	// 	return nullptr;
+	// }
+	// (void)expect(crt_token.kind);
+	// ASTType* node = new ASTTypePrimitive(built_in_type);
+
 }
 
 ASTName* Parser::parse_name()
@@ -132,6 +185,10 @@ ASTName* Parser::parse_name()
 		{
 			(void)expect(TokenKind::COLON_COLON);
 			Token token = expect(TokenKind::IDENTIFIER);
+			if (node == nullptr)
+			{
+				node = new ASTNameGlobal();
+			}
 			node = new ASTNameQualified(node, new ASTNameSimple(token));
 		}
 		else
@@ -216,9 +273,7 @@ ASTExpression* Parser::parse_expr_postfix()
 				(void)expect(TokenKind::LEFT_BRACKET);
 				ASTExpression* index = parse_expr();
 				(void)expect(TokenKind::RIGHT_BRACKET);
-				Token field_name = expect(TokenKind::IDENTIFIER);
-				ASTNameSimple* field = new ASTNameSimple(field_name);
-				node = new ASTExpressionFieldGet(node, field);
+				node = new ASTExpressionArrayGet(node, index);
 				break;
 			}
 			default:
@@ -362,11 +417,17 @@ ASTDeclarationFunction* Parser::parse_decl_fun()
 
 	(void)expect(TokenKind::KW_FUN);
 	Token function_name = expect(TokenKind::IDENTIFIER);
-	(void)expect(TokenKind::LEFT_PAREN);
 
-	while (crt_token.kind != TokenKind::RIGHT_PAREN &&
-		crt_token.kind != TokenKind::END_OF_FILE)
+
+
+	(void)expect(TokenKind::LEFT_PAREN);
+	while (crt_token.kind != TokenKind::END_OF_FILE)
 	{
+		if (crt_token.kind == TokenKind::COMMA)
+		{
+			(void)expect(TokenKind::COMMA);
+		}
+
 		Token parameter_name = expect(TokenKind::IDENTIFIER);
 		(void)expect(TokenKind::COLON);
 		ASTType* parameter_type = parse_type();
@@ -374,16 +435,14 @@ ASTDeclarationFunction* Parser::parse_decl_fun()
 		parameter_name_list.push_back(parameter_name);
 		parameter_type_list.push_back(parameter_type);
 
-		if (crt_token.kind == TokenKind::COMMA)
-		{
-			(void)expect(TokenKind::COMMA);
-		}
-		else if (crt_token.kind == TokenKind::RIGHT_PAREN)
+
+		if (crt_token.kind == TokenKind::RIGHT_PAREN)
 		{
 			break;
 		}
 	}
 	(void)expect(TokenKind::RIGHT_PAREN);
+
 	if (crt_token.kind == TokenKind::MINUS)
 	{
 		(void)expect(TokenKind::MINUS);
